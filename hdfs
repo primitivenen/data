@@ -1,0 +1,204 @@
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+wchen@LAPTOP-OCESKH0M:~$ git
+usage: git [--version] [--help] [-C <path>] [-c name=value]
+           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p | --paginate | --no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           <command> [<args>]
+
+These are common Git commands used in various situations:
+
+start a working area (see also: git help tutorial)
+   clone      Clone a repository into a new directory
+   init       Create an empty Git repository or reinitialize an existing one
+
+work on the current change (see also: git help everyday)
+   add        Add file contents to the index
+   mv         Move or rename a file, a directory, or a symlink
+   reset      Reset current HEAD to the specified state
+   rm         Remove files from the working tree and from the index
+
+examine the history and state (see also: git help revisions)
+   bisect     Use binary search to find the commit that introduced a bug
+   grep       Print lines matching a pattern
+   log        Show commit logs
+   show       Show various types of objects
+   status     Show the working tree status
+
+grow, mark and tweak your common history
+   branch     List, create, or delete branches
+   checkout   Switch branches or restore working tree files
+   commit     Record changes to the repository
+   diff       Show changes between commits, commit and working tree, etc
+   merge      Join two or more development histories together
+   rebase     Forward-port local commits to the updated upstream head
+   tag        Create, list, delete or verify a tag object signed with GPG
+
+collaborate (see also: git help workflows)
+   fetch      Download objects and refs from another repository
+   pull       Fetch from and integrate with another repository or a local branch
+   push       Update remote refs along with associated objects
+
+'git help -a' and 'git help -g' list available subcommands and some
+concept guides. See 'git help <command>' or 'git help <concept>'
+to read about a specific subcommand or concept.
+wchen@LAPTOP-OCESKH0M:~$ git config --global user.name wchen
+wchen@LAPTOP-OCESKH0M:~$ git config --global user.email wchen@gacrndusa.com
+wchen@LAPTOP-OCESKH0M:~$ ssh wchen@172.15.7.43
+wchen@172.15.7.43's password:
+Permission denied, please try again.
+wchen@172.15.7.43's password:
+Permission denied, please try again.
+wchen@172.15.7.43's password:
+Last failed login: Wed Apr  4 13:45:32 PDT 2018 from 172.15.5.31 on ssh:notty
+There were 2 failed login attempts since the last successful login.
+Last login: Wed Apr  4 09:33:29 2018 from 172.15.5.31
+[wchen@43gpu ~]$ exit
+logout
+Connection to 172.15.7.43 closed.
+wchen@LAPTOP-OCESKH0M:~$ ssh wchen@172.15.7.170
+wchen@172.15.7.170's password:
+Last login: Wed Apr  4 09:51:12 2018 from 172.15.5.31
+[wchen@namenode ~]$ hdfs
+Usage: hdfs [--config confdir] [--loglevel loglevel] COMMAND
+       where COMMAND is one of:
+  dfs                  run a filesystem command on the file systems supported in Hadoop.
+  classpath            prints the classpath
+  namenode -format     format the DFS filesystem
+  secondarynamenode    run the DFS secondary namenode
+  namenode             run the DFS namenode
+  journalnode          run the DFS journalnode
+  zkfc                 run the ZK Failover Controller daemon
+  datanode             run a DFS datanode
+  dfsadmin             run a DFS admin client
+  envvars              display computed Hadoop environment variables
+  haadmin              run a DFS HA admin client
+  fsck                 run a DFS filesystem checking utility
+  balancer             run a cluster balancing utility
+  jmxget               get JMX exported values from NameNode or DataNode.
+  mover                run a utility to move block replicas across
+                       storage types
+  oiv                  apply the offline fsimage viewer to an fsimage
+  oiv_legacy           apply the offline fsimage viewer to an legacy fsimage
+  oev                  apply the offline edits viewer to an edits file
+  fetchdt              fetch a delegation token from the NameNode
+  getconf              get config values from configuration
+  groups               get the groups which users belong to
+  snapshotDiff         diff two snapshots of a directory or diff the
+                       current directory contents with a snapshot
+  lsSnapshottableDir   list all snapshottable dirs owned by the current user
+                                                Use -help to see options
+  portmap              run a portmap service
+  nfs3                 run an NFS version 3 gateway
+  cacheadmin           configure the HDFS cache
+  crypto               configure HDFS encryption zones
+  storagepolicies      list/get/set block storage policies
+  version              print the version
+
+Most commands print help when invoked w/o parameters.
+[wchen@namenode ~]$ hdfs dfs -ls /data/ag
+Found 4 items
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 09:57 /data/ag/by-day
+drwxr-xr-x   - hdfs hdfs          0 2018-04-03 22:02 /data/ag/csv
+drwxr-xr-x   - hdfs hdfs          0 2018-02-07 11:41 /data/ag/parquet
+drwxr-xr-x   - hdfs hdfs          0 2018-02-05 16:04 /data/ag/test
+[wchen@namenode ~]$ hdfs dfs -ls /data/ag/csv
+Found 89 items
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:01 /data/ag/csv/d=20180101
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:01 /data/ag/csv/d=20180102
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:01 /data/ag/csv/d=20180103
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:02 /data/ag/csv/d=20180104
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:02 /data/ag/csv/d=20180105
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:02 /data/ag/csv/d=20180106
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:03 /data/ag/csv/d=20180107
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:03 /data/ag/csv/d=20180108
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:03 /data/ag/csv/d=20180109
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:04 /data/ag/csv/d=20180110
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:04 /data/ag/csv/d=20180111
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:05 /data/ag/csv/d=20180112
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:05 /data/ag/csv/d=20180113
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:06 /data/ag/csv/d=20180114
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:06 /data/ag/csv/d=20180115
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:06 /data/ag/csv/d=20180116
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:07 /data/ag/csv/d=20180117
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:07 /data/ag/csv/d=20180118
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:07 /data/ag/csv/d=20180119
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:08 /data/ag/csv/d=20180120
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:08 /data/ag/csv/d=20180121
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:08 /data/ag/csv/d=20180122
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:09 /data/ag/csv/d=20180123
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:09 /data/ag/csv/d=20180124
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:09 /data/ag/csv/d=20180125
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:10 /data/ag/csv/d=20180126
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:10 /data/ag/csv/d=20180127
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:11 /data/ag/csv/d=20180128
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:11 /data/ag/csv/d=20180129
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:11 /data/ag/csv/d=20180130
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:12 /data/ag/csv/d=20180131
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:12 /data/ag/csv/d=20180201
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:13 /data/ag/csv/d=20180202
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:13 /data/ag/csv/d=20180203
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:13 /data/ag/csv/d=20180204
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:14 /data/ag/csv/d=20180205
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:14 /data/ag/csv/d=20180206
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:15 /data/ag/csv/d=20180207
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:15 /data/ag/csv/d=20180208
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:16 /data/ag/csv/d=20180209
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:16 /data/ag/csv/d=20180210
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:16 /data/ag/csv/d=20180211
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:17 /data/ag/csv/d=20180212
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:17 /data/ag/csv/d=20180213
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:18 /data/ag/csv/d=20180214
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:18 /data/ag/csv/d=20180215
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:18 /data/ag/csv/d=20180216
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:18 /data/ag/csv/d=20180217
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:18 /data/ag/csv/d=20180218
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:19 /data/ag/csv/d=20180219
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:19 /data/ag/csv/d=20180220
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:19 /data/ag/csv/d=20180221
+drwxr-xr-x   - hdfs hdfs          0 2018-03-27 10:20 /data/ag/csv/d=20180222
+drwxr-xr-x   - hdfs hdfs          0 2018-03-28 23:00 /data/ag/csv/d=20180223
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180224
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180301
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180302
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180303
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180304
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180305
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180306
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180307
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180308
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180309
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180310
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180311
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180312
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180313
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180314
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180315
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180316
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180317
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180318
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180319
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180320
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180321
+drwxr-xr-x   - hdfs hdfs          0 2018-04-03 22:00 /data/ag/csv/d=20180322
+drwxr-xr-x   - hdfs hdfs          0 2018-04-03 22:00 /data/ag/csv/d=20180323
+drwxr-xr-x   - hdfs hdfs          0 2018-04-03 22:01 /data/ag/csv/d=20180324
+drwxr-xr-x   - hdfs hdfs          0 2018-04-03 22:01 /data/ag/csv/d=20180325
+drwxr-xr-x   - hdfs hdfs          0 2018-04-03 22:02 /data/ag/csv/d=20180326
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180327
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180328
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180329
+drwxr-xr-x   - hdfs hdfs          0 2018-03-30 22:00 /data/ag/csv/d=20180330
+drwxr-xr-x   - hdfs hdfs          0 2018-03-31 22:00 /data/ag/csv/d=20180331
+drwxr-xr-x   - hdfs hdfs          0 2018-04-01 22:00 /data/ag/csv/d=20180401
+drwxr-xr-x   - hdfs hdfs          0 2018-04-02 22:00 /data/ag/csv/d=20180402
+drwxr-xr-x   - hdfs hdfs          0 2018-04-03 22:02 /data/ag/csv/d=20180403
+[wchen@namenode ~]$ hdfs dfs -ls /data/ag/csv/d=20180403
+Found 4 items
+-rw-r--r--   3 hdfs hdfs  591967040 2018-04-03 22:02 /data/ag/csv/d=20180403/part-00000-d33c703f-2085-4003-9104-000841007dae.c000.csv
+-rw-r--r--   3 hdfs hdfs  591926091 2018-04-03 22:02 /data/ag/csv/d=20180403/part-00001-d33c703f-2085-4003-9104-000841007dae.c000.csv
+-rw-r--r--   3 hdfs hdfs  592037363 2018-04-03 22:02 /data/ag/csv/d=20180403/part-00002-d33c703f-2085-4003-9104-000841007dae.c000.csv
+-rw-r--r--   3 hdfs hdfs  591861641 2018-04-03 22:02 /data/ag/csv/d=20180403/part-00003-d33c703f-2085-4003-9104-000841007dae.c000.csv
+[wchen@namenode ~]$
