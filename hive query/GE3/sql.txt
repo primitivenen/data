@@ -1,0 +1,48 @@
+create table records as select vin, cast(ts as bigint) as new_ts, loc_lon84, loc_lat84 from guobiao_tsp_tbls.guobiao_raw_orc
+where vintype='A5HEV' and abs(veh_curr) < 50 and veh_soc>=10 and data_batt_temp_lowestest>=15 and data_batt_sc_volt_highest-data_batt_sc_volt_lowest>=0.1;
+
+	
+DROP TABLE IF EXISTS E0 PURGE;
+create table E0 as select vin, min(new_ts) as ts0 from records group by vin;
+
+DROP TABLE IF EXISTS records0 PURGE;
+create table records0 as select records.* from records inner join E0 on records.vin=E0.vin
+     where records.new_ts!=E0.ts0;
+
+DROP TABLE IF EXISTS E1 PURGE;
+create table E1 as select vin, min(new_ts) as ts1 from records0 group by vin;
+
+DROP TABLE IF EXISTS records1 PURGE;
+create table records1 as select records0.* from records0 inner join E1 on records0.vin=E1.vin
+     where records0.new_ts!=E1.ts1;
+
+DROP TABLE IF EXISTS selected PURGE;
+create table selected as select vin, min(new_ts) as first_ts, max(new_ts) as last_ts,
+          count(*)+2 as freq from records1 group by
+		  vin;
+
+DROP TABLE IF EXISTS selected1 PURGE;
+create table selected1 as select selected.*, records.loc_lon84 as first_lon, records.loc_lat84 as first_lat
+           from selected inner join records
+           on selected.vin=records.vin and selected.first_ts=records.new_ts;
+
+DROP TABLE IF EXISTS selected2 PURGE;
+create table selected2 as select selected1.*, records.loc_lon84 as last_lon, records.loc_lat84 as last_lat
+           from selected1 inner join records
+           on selected1.vin=records.vin and selected1.last_ts=records.new_ts;
+
+DROP TABLE IF EXISTS selected3 PURGE;
+create table selected3 as select vin,from_unixtime(cast(first_ts/1000 as bigint)) as first_time, 
+from_unixtime(cast(last_ts/1000 as bigint)) as last_time, freq, first_lon, first_lat, last_lon, last_lat
+from selected2;
+
+DROP TABLE IF EXISTS ge3_result PURGE;
+
+create table ge3_result as select distinct vin, first_time, date_format(first_time, 'yyyy-MM-dd') as first_date,  
+last_time,freq,first_lon,first_lat,last_lon,last_lat
+from selected3
+where first_time>'2018-08-01';
+
+create table filter_result as 
+select vin, first_time, last_time,freq,first_lon,first_lat,last_lon,last_lat from ge3_result;
+
