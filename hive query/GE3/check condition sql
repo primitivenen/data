@@ -1,0 +1,6 @@
+select count(*)  from (select vin, count(*) as frequency from ge3_high_cell_volt_diff_records group by vin having frequency > 2) a;
+
+
+select vin, ts, count(*) as frequency from guobiao_tsp_tbls.guobiao_raw_orc group by vin, ts having frequency > 1;
+
+create guobiao_raw_orc2 as select distinct(*) from guobiao_raw_orc
