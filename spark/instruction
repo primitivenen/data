@@ -1,0 +1,23 @@
+How to run Jupyter Notebook on cluster:
+	1) Open a terminal and log into name node: nn (alias nn='ssh mziaemohseni@172.15.7.170')
+	2) Open the Jupyter Notebook: jn (alias jn='jupyter notebook --no-browser')
+	3) Open another terminal and type the following command, where XXXX is the port number Jupyter Notebook is running from step 2: 
+		ssh -NfL localhost:8888:localhost:XXXX mziaemohseni@172.15.7.170
+	4) You can close the second terminal if you want
+	5) In your browser, go to: localhost:8888
+	6) Copy and paste the token from the first terminal and hit enter
+	7) Start developing your notebook
+
+
+1.打开一个Ubuntu，$ssh wchen@172.15.7.170
+2. $jupyter notebook --no-browser
+
+ The Jupyter Notebook is running at:
+[I 11:04:57.192 NotebookApp] http://localhost:8890/?token=e206fe9afd4fb2ed474e07e1d12fa2cb868046f3336f89d5
+                                             (port number)          (login token)
+3. 打开另一个 Ubuntu，输入： ssh -NfL localhost:8888:localhost:XXXX(port number in step 2) mziaemohseni@172.15.7.170
+                                              (或者8889)
+4. 关闭第二个窗口
+5. 打开浏览器，输入： localhost:8888  (或者8889)
+6. 输入step2的login token
+7. 完毕
