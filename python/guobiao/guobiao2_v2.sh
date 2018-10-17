@@ -1,0 +1,26 @@
+#!/bin/bash
+cd /home/wchen/dsa/
+python guobiao_data_0815.py   |& tee -a /home/wchen/dsa/loglog 
+endday=`date --date="today" +%Y%m%d`
+startday=`date --date="10 days ago" +%Y%m%d`
+d=$startday
+while [[ "$d" -le $endday ]]; do
+  f=insert_$d.hql
+  echo "USE guobiao_tsp_tbls; " >> $f
+  echo "INSERT OVERWRITE TABLE guobiao_raw_orc " >> $f
+  echo "PARTITION (day=\"$d\") " >> $f
+  echo "SELECT \`(day)?+.+\` " >> $f
+  echo " FROM guobiao_vehicle_raw " >> $f
+  echo "WHERE day=\"$d\" " >> $f
+  echo "Executing... hive -f $f;"
+  hive -f $f
+  echo "Done with hive -f $f" >> batch_insert_${startday}_${endday}.log
+  d=$(date --date="$d + 1 day" +%Y%m%d)
+  rm /home/wchen/dsa/$f
+done
+current_time=$(date "+%Y.%m.%d-%H.%M.%S")
+hive -f get_high_cell_volt_diff_all_records.hql  |& tee -a /home/wchen/dsa/high_cell_volt_diff_all_records_$current_time.log
+hive -f get_high_cell_volt_diff_by_vin.hql  |& tee -a /home/wchen/dsa/high_cell_volt_diff_by_vin_$current_time.log
+hive -f guobiao_filter_all.hql  |& tee -a /home/wchen/dsa/filter_all_$current_time.log
+hive -f guobiao_filter_vin.hql  |& tee -a /home/wchen/dsa/filter_vin_$current_time.log
+hive -f create_ge3_core_stats.hql  |& tee -a /home/wchen/dsa/ge3_core_stats_$current_time.log
