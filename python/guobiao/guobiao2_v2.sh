@@ -19,8 +19,8 @@ while [[ "$d" -le $endday ]]; do
   rm /home/wchen/dsa/$f
 done
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
-hive -f get_high_cell_volt_diff_all_records.hql  |& tee -a /home/wchen/dsa/high_cell_volt_diff_all_records_$current_time.log
-hive -f get_high_cell_volt_diff_by_vin.hql  |& tee -a /home/wchen/dsa/high_cell_volt_diff_by_vin_$current_time.log
-hive -f guobiao_filter_all.hql  |& tee -a /home/wchen/dsa/filter_all_$current_time.log
-hive -f guobiao_filter_vin.hql  |& tee -a /home/wchen/dsa/filter_vin_$current_time.log
-hive -f create_ge3_core_stats.hql  |& tee -a /home/wchen/dsa/ge3_core_stats_$current_time.log
+hive -f get_high_cell_volt_diff_all_records.hql  > /home/wchen/dsa/high_cell_volt_diff_all_records_$current_time.log 2>&1
+hive -f get_high_cell_volt_diff_by_vin.hql  > /home/wchen/dsa/high_cell_volt_diff_by_vin_$current_time.log 2>&1
+hive -f guobiao_filter_all.hql  > /home/wchen/dsa/filter_all_$current_time.log  2>&1
+hive -f guobiao_filter_vin.hql  > /home/wchen/dsa/filter_vin_$current_time.log   2>&1
+bash Insert_GE3_core_stats.sh  > /home/wchen/dsa/ge3_core_stats_$current_time.log   2>&1
