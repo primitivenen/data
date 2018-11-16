@@ -5,8 +5,11 @@ endday=`date --date="today" +%Y%m%d`
 startday=`date --date="$days days ago" +%Y%m%d`
 d=$startday
 while [ "$d" -le "$endday" ]; do
-  returncode=`hdfs dfs -test -d hdfs://namenode:8020/data/ag/csv/d=$d`
+  hdfs dfs -test -d hdfs://namenode:8020/data/ag/csv/d=$d
+  returncode=$?
+  echo "For date $d, returncode is $returncode"
   if [[ "$returncode" -eq 1 ]]; then
+    d=$(date --date="$d + 1 day" +%Y%m%d)
     continue
   fi
   f=insert_$d.hql
