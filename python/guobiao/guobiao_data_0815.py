@@ -1,87 +1,36 @@
-from datetime import datetime, date
-import subprocess
-import pandas as pd
-import os
-import sys
-import findspark   # find spark home directory
-findspark.init("/usr/hdp/current/spark2-client")   # spark location on namenode server
-
-import numpy as np
-from datetime import timedelta
-import pyspark
-from pyspark.sql import HiveContext
-from pyspark.sql.functions import col, when
-
-from pyspark.sql.functions import isnan, isnull
-
-
-# configs
-conf = pyspark.SparkConf().setAll([('spark.app.name', 'guobiao_tsp_tbls.guobiao_vehicle_raw'),
-                                   ('spark.master', 'yarn'),
-                                   ('spark.submit.deployMode', 'client'),
-                                   ('spark.executor.memory', '10g'),
-                                   ('spark.memory.fraction', '0.7'),
-                                   ('spark.executor.cores', '3'),
-                                   ('spark.executor.instances', '20'),
-                                   ('spark.yarn.am.memory', '10g'),
-                                   ('spark.debug.maxToStringFields','100')])
-conf1 = pyspark.SparkConf().setAll([('spark.app.name', 'guobiao_tsp_tbls.guobiao_vehicle_raw'),
-                                    ('spark.master', 'local'),
-                                    ('spark.executor.memory', '10g'),
-                                    ('spark.memory.fraction', '0.7'),
-                                    ('spark.executor.cores', '3'),
-                                    ('spark.debug.maxToStringFields','100')])
-
-def run_cmd(args_list):
-    proc = subprocess.Popen(args_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    proc.communicate()
-    return proc.returncode
-
-
-# export to hive
-sc = pyspark.SparkContext(conf=conf1)
-the_directory = 'hdfs://namenode:8020/data/guobiao/'
-logfile ='/home/wchen/dsa/log_guobiao.txt'
-
-dates = []
-#start_date = date(2018, 8, 22)
-start_date = date.today()
-end_date = date(2017, 8, 5)
-#end_date = date(2018, 1, 1)
-def daterange(start_date, end_date):
-    for n in range(int((start_date - end_date).days + 1)):
-        yield start_date - timedelta(n)
-for single_date in daterange(start_date, end_date):
-    dates.append(single_date.strftime('%Y%m%d'))
-
-# Hive context
-hc = HiveContext(sc)
-
-a=set()
-with open(logfile, 'r') as infile:
-    for line in infile:
-        if line.strip() not in a:
-            a.add(line.strip())
-          
-for day in dates:
-    if day in a:
-	break
-
-    file_loc = 'csv/d={}'.format(day)
-    data_file = the_directory + file_loc
-    returncode = run_cmd(['hdfs', 'dfs', '-test', '-d', data_file])
-	#returncode = run_cmd(['hdfs', 'dfs', '-test', '-d', 'hdfs://namenode:8020/data/guobiao/csv/d=20181116'])
-    if returncode:
-        print('{} does not exist, skipping ..'.format(data_file))
-  	continue
-	
-    filename = the_directory + 'csv/d=' + day + '/'
-    sql_cmd = """ALTER TABLE guobiao_tsp_tbls.guobiao_vehicle_raw ADD PARTITION(day='{0}') location'{1}'""".format(day, filename) 
-
-    hc.sql(sql_cmd)
-    print(sql_cmd)
-    with open(logfile, "a") as myfile:
-        myfile.write(day+'\n')
-
-sc.stop()
-# print('done.')
+#!/bin/bash
+cd /home/wchen/dsa/
+python guobiao_data_0815.py   |& tee -a /home/wchen/dsa/loglog 
+endday=`date --date="today" +%Y%m%d`
+#startday=`date --date="10 days ago" +%Y%m%d`
+last_date=`grep \. log_guobiao.txt | tail -1`
+startday=$(date -d "$last_date + 1 day" +"%Y%m%d")
+d=$startday
+while [[ "$d" -le $endday ]]; do
+  #returncode=`hdfs dfs -test -d hdfs://namenode:8020/data/guobiao/csv/d=$d`
+  hdfs dfs -test -d hdfs://namenode:8020/data/guobiao/csv/d=$d
+  returncode=$?
+  echo "For date $d, returncode is $returncode"
+  if [[ "$returncode" -eq 1 ]]; then
+    d=$(date --date="$d + 1 day" +%Y%m%d)
+    continue
+  fi
+  f=insert_$d.hql
+  echo "USE guobiao_tsp_tbls; " >> $f
+  echo "INSERT OVERWRITE TABLE guobiao_raw_orc " >> $f
+  echo "PARTITION (day=\"$d\") " >> $f
+  echo "SELECT \`(day)?+.+\` " >> $f
+  echo " FROM guobiao_vehicle_raw " >> $f
+  echo "WHERE day=\"$d\" " >> $f
+  echo "Executing... hive -f $f;"
+  hive -f $f
+  echo "Done with hive -f $f" >> batch_insert_${startday}_${endday}.log
+  d=$(date --date="$d + 1 day" +%Y%m%d)
+  rm /home/wchen/dsa/$f
+done
+current_time=$(date "+%Y.%m.%d-%H.%M.%S")
+hive -f get_high_cell_volt_diff_all_records.hql  > /home/wchen/dsa/high_cell_volt_diff_all_records_$current_time.log 2>&1
+hive -f get_high_cell_volt_diff_by_vin.hql  > /home/wchen/dsa/high_cell_volt_diff_by_vin_$current_time.log 2>&1
+hive -f guobiao_filter_all.hql  > /home/wchen/dsa/filter_all_$current_time.log  2>&1
+hive -f guobiao_filter_vin.hql  > /home/wchen/dsa/filter_vin_$current_time.log   2>&1
+bash Insert_GE3_core_stats.sh  > /home/wchen/dsa/ge3_core_stats_$current_time.log   2>&1
