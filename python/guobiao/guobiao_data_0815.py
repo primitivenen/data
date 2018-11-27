@@ -44,9 +44,9 @@ the_directory = 'hdfs://namenode:8020/data/guobiao/'
 logfile ='/home/wchen/dsa/log_guobiao.txt'
 
 dates = []
-#start_date = date(2018, 8, 19)
+#start_date = date(2018, 8, 22)
 start_date = date.today()
-end_date = date(2017, 5, 17)
+end_date = date(2017, 8, 5)
 #end_date = date(2018, 1, 1)
 def daterange(start_date, end_date):
     for n in range(int((start_date - end_date).days + 1)):
@@ -60,27 +60,28 @@ hc = HiveContext(sc)
 a=set()
 with open(logfile, 'r') as infile:
     for line in infile:
-        if line not in a:
-            a.add(line)
-                    
+        if line.strip() not in a:
+            a.add(line.strip())
+          
 for day in dates:
-	if day in a:
-		break
+    if day in a:
+	break
 
-	file_loc = 'csv/d={}'.format(day)
-	data_file = the_directory + file_loc
-   	returncode = run_cmd(['hdfs', 'dfs', '-test', '-d', data_file])
-   	if returncode:
-  	    print('{} does not exist, skipping ..'.format(data_file))
-  	    continue
+    file_loc = 'csv/d={}'.format(day)
+    data_file = the_directory + file_loc
+    returncode = run_cmd(['hdfs', 'dfs', '-test', '-d', data_file])
+	#returncode = run_cmd(['hdfs', 'dfs', '-test', '-d', 'hdfs://namenode:8020/data/guobiao/csv/d=20181116'])
+    if returncode:
+        print('{} does not exist, skipping ..'.format(data_file))
+  	continue
+	
+    filename = the_directory + 'csv/d=' + day + '/'
+    sql_cmd = """ALTER TABLE guobiao_tsp_tbls.guobiao_vehicle_raw ADD PARTITION(day='{0}') location'{1}'""".format(day, filename) 
 
-	filename = the_directory + 'csv/d=' + day + '/'
-	sql_cmd = """ALTER TABLE guobiao_tsp_tbls.guobiao_vehicle_raw ADD PARTITION(day='{0}') location'{1}'""".format(day, filename) 
-
-	hc.sql(sql_cmd)
-	print(sql_cmd)
-	with open(logfile, "a") as myfile:
-            myfile.write(day+'\n')
+    hc.sql(sql_cmd)
+    print(sql_cmd)
+    with open(logfile, "a") as myfile:
+        myfile.write(day+'\n')
 
 sc.stop()
 # print('done.')
