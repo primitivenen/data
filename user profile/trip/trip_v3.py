@@ -198,16 +198,17 @@ def BatchGenerateTrips(sc):
 def GenerateTodayTrips(sc, n):
     start_date = date.today() - timedelta(n)
     end_date = date.today()
+    print("Starting calculating from " + str(start_date))
 
-    sql = 'DROP TABLE IF EXISTS ubi.end_time PURGE'  
+    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.end_time PURGE'  
     hc.sql("""{}""".format(sql))   
-    sql="""create table ubi.end_time as select vin, max(bigint(ts / 1000)) as lasttime from guobiao_tsp_tbls.guobiao_raw_orc where day='{0}' and veh_st = 2 group by vin""".format(start_date) 
+    sql="""create table guobiao_tsp_tbls.end_time as select vin, max(bigint(ts / 1000)) as lasttime from guobiao_tsp_tbls.guobiao_raw_orc where day='{0}' and veh_st = 2 group by vin""".format(start_date) 
     hc.sql("""{}""".format(sql))
     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.starts_redundant PURGE' 
     hc.sql("""{}""".format(sql))
 
-    sql = """create table guobiao_tsp_tbls.starts_redundant as select vin, loc_lat, loc_lon, bigint(ts / 1000) as ts_seconds, day, veh_odo from \
-        guobiao_tsp_tbls.guobiao_raw_orc inner join ubi.end_time on guobiao_tsp_tbls.guobiao_raw_orc.vin = ubi.end_time.vin where day>='{0}' and veh_st = 1 and bigint(ts / 1000) > ubi.end_time.lasttime """.format(start_date)
+    sql = """create table guobiao_tsp_tbls.starts_redundant as select a.vin, a.loc_lat, a.loc_lon, bigint(a.ts / 1000) as ts_seconds, a.day, a.veh_odo from \
+       guobiao_tsp_tbls.guobiao_raw_orc a inner join guobiao_tsp_tbls.end_time b on a.vin = b.vin where a.day>='{0}' and a.veh_st = 1 and bigint(a.ts / 1000) > b.lasttime """.format(start_date)
     hc.sql("""{}""".format(sql))
 
     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.ends_redundant PURGE' 
@@ -217,8 +218,8 @@ def GenerateTodayTrips(sc, n):
         from guobiao_tsp_tbls.guobiao_raw_orc where day='{0}' and veh_st = 2""".format(end_date)
     hc.sql("""{}""".format(sql))
     
-    sql = 'DROP TABLE IF EXISTS ubi.end_time PURGE'     
-    sql="""create table ubi.end_time as select vin, max(end_time) from guobiao_tsp_tbls.guobiao_raw_orc where day='{0}' and veh_st = 2 group by vin""".format(start_date) 
+    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.end_time PURGE'     
+    sql="""create table guobiao_tsp_tbls.end_time as select vin, max(end_time) from guobiao_tsp_tbls.guobiao_raw_orc where day='{0}' and veh_st = 2 group by vin""".format(start_date) 
     hc.sql("""{}""".format(sql)) 
     
     GenerateTrips(sc)
@@ -320,13 +321,13 @@ if __name__ == "__main__":
         
     # run one day
     if args[0] == '--today':  
-        if len(args) < 2:
-            print('no date provided')
+        if len(args) < 1:
+            print('invalid input')
             sys.exit(1)
-        if len(args[1]) != 8:
-            print('invalid input date: {}'.format(args[1]))
-            sys.exit(1)
-        GenerateTodayTrips(sc, 29)
+        #if len(args[1]) != 8:
+         #   print('invalid input: {}'.format(args[1]))
+         #   sys.exit(1)
+        GenerateTodayTrips(sc, 32)
         del args[0]
         
     # run entire history
