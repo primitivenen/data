@@ -1,0 +1,1 @@
+select vin, start_day, from_unixtime(unix_timestamp(CONCAT(start_day, ' ', '23:00:00'), 'yyyyMMdd HH:mm:ss')) from trips_complete
