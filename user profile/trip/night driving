@@ -10,3 +10,22 @@ select *, (unix_timestamp(b.night_end_time)-unix_timestamp(b.night_start_time))/
   from (select vin, start_time, start_day, end_time, from_unixtime(unix_timestamp(CONCAT(start_day, ' ', '22:00:00'), 'yyyyMMdd HH:mm:ss')) as night_start,
 	   from_unixtime(unix_timestamp(CONCAT(start_day, ' ', '05:00:00'), 'yyyyMMdd HH:mm:ss') + 86400) as night_end from trips_complete) a) b
 where b.night_end_time > b.night_start_time
+
+
+计算每个vin 的 night driving trip 次数：
+
+select vin, count(*) as num from (select *, (unix_timestamp(b.night_end_time)-unix_timestamp(b.night_start_time))/60 as night_driving_mins from (
+  select vin, start_time,a.night_start, case
+  when start_time > (a.night_start) then start_time
+  else cast(a.night_start as timestamp)
+  end as night_start_time,
+  end_time, a.night_end, case
+  when end_time < (a.night_end) then end_time
+  else cast(a.night_end as timestamp)
+  end as night_end_time
+  from (select vin, start_time, start_day, end_time, from_unixtime(unix_timestamp(CONCAT(start_day, ' ', '22:00:00'), 'yyyyMMdd HH:mm:ss')) as night_start,
+	   from_unixtime(unix_timestamp(CONCAT(start_day, ' ', '05:00:00'), 'yyyyMMdd HH:mm:ss') + 86400) as night_end from trips_complete) a) b
+where b.night_end_time > b.night_start_time) c
+group by vin
+order by num
+desc
