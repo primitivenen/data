@@ -5,3 +5,7 @@ from ubi.trips_complete where distance>=1
 group by vin;' > /home/wchen/dsc/res/trip_statistics.csv
 
 sed -i 's/[\t]/,/' trip_statistics.csv    //把tab替换成,
+
+select count(distinct start_loc_lat, start_loc_lon) from trips_complete 
+
+select vin, count(*) as frequency from trips_complete group by vin order by frequency desc
