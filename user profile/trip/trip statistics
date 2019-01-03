@@ -1,0 +1,7 @@
+产生distance统计表
+hive -e 'select vin, min(distance) as min_distance,max(distance) as max_distance,avg(distance) as avg_distance,
+stddev_pop(distance) as std_distance, count(distance) as count
+from ubi.trips_complete where distance>=1
+group by vin;' > /home/wchen/dsc/res/trip_statistics.csv
+
+sed -i 's/[\t]/,/' trip_statistics.csv    //把tab替换成,
