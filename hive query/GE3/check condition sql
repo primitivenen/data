@@ -4,3 +4,6 @@ select count(*)  from (select vin, count(*) as frequency from ge3_high_cell_volt
 select vin, ts, count(*) as frequency from guobiao_tsp_tbls.guobiao_raw_orc group by vin, ts having frequency > 1;
 
 create guobiao_raw_orc2 as select distinct(*) from guobiao_raw_orc
+
+SELECT soh,soh_loss,soh_loss_cell_volt_diff,soh_loss_usage,soh_seasonal,soh_seasonal_loss,soh_seasonal_loss_battery_temp_avg,
+soh_seasonal_loss_battery_temp_diff,vin,y_ref,year,month_date,LPAD(cast(month as string), 2, '0') AS month FROM mileage_model_monthly_soh
