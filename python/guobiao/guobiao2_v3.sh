@@ -50,7 +50,8 @@ done
 echo "Creating tables ..."
 d=$startday
 while [[ "$d" -le $endday ]]; do
-  hdfs dfs -test -d hdfs://namenode:8020/data/guobiao/csv/d=$d
+  #hdfs dfs -test -d hdfs://namenode:8020/data/guobiao/csv/d=$d
+  hdfs dfs -test -e hdfs://namenode:8020/data/guobiao/csv/d=$d/_SUCCESS
   echo hdfs://namenode:8020/data/guobiao/csv/d=$d
   returncode=$?
   echo $returncode
@@ -59,10 +60,10 @@ while [[ "$d" -le $endday ]]; do
     echo "$returncode"
   else
     tmp=`date -d $d +"%Y-%m-%d"`
-    #sed -i -e "s/current_date/'$tmp'/g" get_high_cell_volt_diff_all_records.hql
-    #hive -f get_high_cell_volt_diff_all_records.hql  > /home/wchen/dsa/high_cell_volt_diff_all_records_$current_time.log 
-    #sed -i -e "s/'$tmp'/current_date/g" get_high_cell_volt_diff_all_records.hql
-    #hive -f get_high_cell_volt_diff_by_vin.hql  > /home/wchen/dsa/high_cell_volt_diff_by_vin_$current_time.log 
+    sed -i -e "s/current_date/'$tmp'/g" get_high_cell_volt_diff_all_records.hql
+    hive -f get_high_cell_volt_diff_all_records.hql  > /home/wchen/dsa/high_cell_volt_diff_all_records_$current_time.log 
+    sed -i -e "s/'$tmp'/current_date/g" get_high_cell_volt_diff_all_records.hql
+    hive -f get_high_cell_volt_diff_by_vin.hql  > /home/wchen/dsa/high_cell_volt_diff_by_vin_$current_time.log 
     sed -i -e "s/current_date/'$tmp'/g" guobiao_filter_all.hql    
     hive -f guobiao_filter_all.hql  #> /home/wchen/dsa/filter_all_$current_time.log 
     sed -i -e "s/'$tmp'/current_date/g" guobiao_filter_all.hql   
