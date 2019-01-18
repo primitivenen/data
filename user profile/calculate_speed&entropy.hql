@@ -13,3 +13,27 @@ select * from entropy left join
   ) b
 ) c
 on entropy.vin=c.vin
+
+历史201801entropy计算和整体比较
+select a.vin, a.entropy, b.entropy from (select vin, sum(- probability * log2(probability)) as entropy 
+from (
+  select trip.vin, start_address, end_address, sum(1.0 / a.totalfrequency) as probability 
+  from trip join (
+	select vin, count(*) as totalfrequency from trip group by vin
+  ) a 
+  on trip.vin = a.vin
+  where start_day>='20180101' and start_day<='20180131'
+  group by trip.vin, start_address, end_address) b 
+group by vin 
+order by entropy desc) a left join
+(select vin, sum(- probability * log2(probability)) as entropy 
+from (
+  select trip.vin, start_address, end_address, sum(1.0 / a.totalfrequency) as probability 
+  from trip join (
+	select vin, count(*) as totalfrequency from trip group by vin
+  ) a 
+  on trip.vin = a.vin
+  group by trip.vin, start_address, end_address) b 
+group by vin 
+order by entropy desc) b
+where a.vin=b.vin
