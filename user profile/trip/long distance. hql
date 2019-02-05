@@ -1,0 +1,1 @@
+select vin, count(*) as frequency from (select * from trips_complete where distance >= 100) a group by vin order by frequency desc
