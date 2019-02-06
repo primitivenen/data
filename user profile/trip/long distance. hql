@@ -1,1 +1,12 @@
 select vin, count(*) as frequency from (select * from trips_complete where distance >= 100) a group by vin order by frequency desc
+
+
+select vin, sum(long_distance) as frequency, avg(long_distance) as percent_long_distance 
+from 
+(select vin, distance, case
+  when distance >= 100 then 1
+  else 0
+  end as long_distance
+ from trips_complete) a 
+group by vin 
+order by frequency desc
