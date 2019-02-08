@@ -1,0 +1,5 @@
+select entropy.vin, entropy.entropy,am_peak_driving_by_day.percent_daily_peak_driving,
+pm_peak_driving_by_day.percent_daily_peak_driving, night_driving_by_day.percent_daily_night_driving,
+long_distance_driving.percent_long_distance
+from entropy,am_peak_driving_by_day,pm_peak_driving_by_day,night_driving,long_distance_driving
+where entropy.vin=am_peak_driving_by_day.vin=pm_peak_driving_by_day.vin=night_driving.vin=long_distance_driving.vin
