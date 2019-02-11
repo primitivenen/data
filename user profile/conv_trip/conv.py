@@ -142,7 +142,7 @@ def extractData(days):
 			df_tmp = df_tmp.withColumn("prev_normaltime", F.lag(df_tmp.normaltime).over(my_window))
 			df_tmp = df_tmp.withColumn("prev_diff", F.when(F.isnull(df_tmp.normaltime.cast("long") - df_tmp.prev_normaltime.cast("long")), 1000).otherwise(df_tmp.normaltime.cast("long") - df_tmp.prev_normaltime.cast("long")))
 			df_tmp = df_tmp.withColumn("next_diff", F.when(F.isnull(df_tmp.next_normaltime.cast("long") - df_tmp.normaltime.cast("long")), 1000).otherwise(df_tmp.next_normaltime.cast("long") - df_tmp.normaltime.cast("long")))
-			df_tmp = df_tmp.where("prev_diff >= 60 or next_diff >= 60")
+			df_tmp = df_tmp.where("(prev_diff >= 60 or next_diff >= 60) and tel_latitudedeg > 0 and tel_longitudedeg > 0")
 			print('{} starting/ending rows  ..'.format(df_tmp.count()))
 			if df is None:
 				df = df_tmp
@@ -156,8 +156,8 @@ def extractData(days):
 		
 def main():
 
-	d1 = date(2019,1,25)
-	d2 = date(2019,1,28)
+	d1 = date(2017,9,25)
+	d2 = date(2019,2,9)
 	
 	delta = d2 - d1
 	days=[]
