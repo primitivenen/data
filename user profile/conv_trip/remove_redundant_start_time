@@ -1,0 +1,4 @@
+select ubi.conv_trips.* from ubi.conv_trips 
+join 
+(select vin, start_time, max(end_time) as end_time from ubi.conv_trips group by vin, start_time) a 
+on ubi.conv_trips.vin = a.vin and ubi.conv_trips.start_time = a.start_time and ubi.conv_trips.end_time = a.end_time
