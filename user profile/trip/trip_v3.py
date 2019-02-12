@@ -327,7 +327,8 @@ if __name__ == "__main__":
         #if len(args[1]) != 8:
          #   print('invalid input: {}'.format(args[1]))
          #   sys.exit(1)
-        GenerateTodayTrips(sc, 32)
+	#GenerateTodayTrips2(sc, 39)11/8-12/17   12/17-12/28(11)  12/28-01/14 (17)  1/14-2/11(28)
+        GenerateTodayTrips(sc, 1)
         del args[0]
         
     # run entire history
