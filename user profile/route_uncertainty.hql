@@ -8,7 +8,8 @@ from (select vin, ROUND(CAST(start_loc_lat as float), 3) as start_loc_lat,
 	  ROUND(CAST(end_loc_lon as float), 3) as end_loc_lon, 
 	  sum(1.0 / a.totalfrequency) as probability 
 from conv_trips_complete join (select vin, count(*) as totalfrequency from conv_trips_complete group by vin) a 
-on conv_trips_complete.vin = a.vin group by conv_trips_complete.vin, start_loc_lat, start_loc_lon, end_loc_lat, end_loc_lon) b group by vin order by entropy desc
+on conv_trips_complete.vin = a.vin group by conv_trips_complete.vin, start_loc_lat, start_loc_lon, end_loc_lat, end_loc_lon) b 
+group by vin order by entropy_all desc
 
 select c.vin, entropy_all, entropy_last_month from
 (
@@ -20,7 +21,7 @@ from (select vin, ROUND(CAST(start_loc_lat as float), 3) as start_loc_lat,
 	  sum(1.0 / a.totalfrequency) as probability 
 from conv_trips_complete join (select vin, count(*) as totalfrequency from conv_trips_complete group by vin) a 
 on conv_trips_complete.vin = a.vin group by conv_trips_complete.vin, start_loc_lat, start_loc_lon, end_loc_lat, end_loc_lon) b 
-group by vin order by entropy desc
+group by vin
 ) c join
 (
 select vin, sum(- probability * log2(probability)) as entropy_last_month 
@@ -35,6 +36,6 @@ from
  where conv_trips_complete.start_day>=from_unixtime(unix_timestamp(date_sub('2019-02-14', 30), 'yyyy-MM-dd'))
  group by conv_trips_complete.vin, start_loc_lat, start_loc_lon, end_loc_lat, end_loc_lon
 ) b 
-group by vin order by entropy desc
+group by vin 
 ) d
 on c.vin=d.vin
