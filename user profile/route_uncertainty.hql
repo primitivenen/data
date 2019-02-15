@@ -32,7 +32,7 @@ from
 	  ROUND(CAST(end_loc_lon as float), 3) as end_loc_lon, 
 	  sum(1.0 / a.totalfrequency) as probability 
  from conv_trips_complete join (select vin, count(*) as totalfrequency from conv_trips_complete 
-								where conv_trips_complete.start_day>=from_unixtime(unix_timestamp(date_sub('2019-02-14', 30), 'yyyy-MM-dd'))
+								where conv_trips_complete.start_day>=from_unixtime(unix_timestamp(date_sub(current_date,30),'yyyy-MM-dd'),'yyyyMMdd')
 								group by vin
  ) a 
  on conv_trips_complete.vin = a.vin 
