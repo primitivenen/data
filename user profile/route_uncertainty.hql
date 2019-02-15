@@ -36,7 +36,7 @@ from
 								group by vin
  ) a 
  on conv_trips_complete.vin = a.vin 
- where conv_trips_complete.start_day>=from_unixtime(unix_timestamp(date_sub('2019-02-14', 30), 'yyyy-MM-dd'))
+ where conv_trips_complete.start_day>=from_unixtime(unix_timestamp(date_sub(current_date,30),'yyyy-MM-dd'),'yyyyMMdd')
  group by conv_trips_complete.vin, start_loc_lat, start_loc_lon, end_loc_lat, end_loc_lon
 ) b 
 group by vin 
