@@ -170,7 +170,7 @@ def extract_data(days):
 				df = df.union(df_tmp)
 		print('{} processing ..'.format(day))
 		if not (df is None):
-			print('{} rows loaded ..'.format(df.count()))
+			print('{} rows loaded ...'.format(df.count()))
 	return df	
 	
 def main():
