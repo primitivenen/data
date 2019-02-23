@@ -1,3 +1,9 @@
+
+合并文件
+for file in *txt; do cat $file >> newfile; done
+
+vi newfile
+
 统一替换文件里的\t为,   (txt转化为csv)
 sed -i -e 's/\t/,/g' newfile
 
