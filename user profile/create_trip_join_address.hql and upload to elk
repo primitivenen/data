@@ -6,6 +6,10 @@ vi newfile
 
 统一替换文件里的\t为,   (txt转化为csv)
 sed -i -e 's/\t/,/g' newfile
+python trip_v3.py --location
+python cs.py
+split -n l/43 trips_complete.json
+
 
 select t1.*, t2.address as end_address from (select a.*, b.address as start_address from trips_complete a left join address b
 on round(cast(a.start_loc_lat as float), 3)=round(cast(b.loc_latitude as float), 3) and 
