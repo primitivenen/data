@@ -10,6 +10,8 @@ python trip_v3.py --location
 python cs.py
 #split -n l/43 trips_complete.json
 split -l 50000 trips_complete.json
+sed -i -E -e 's/(.*start_day.*:)([0-9]+)(.*)/\1"\2"\3/' trips_complete.json
+
 
 cd /home/wchen/collect
 
