@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import findspark
 findspark.init('/usr/hdp/current/spark2-client')
 
@@ -19,7 +20,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 from pyspark.sql.functions import desc
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 def get_Spark():
 
@@ -150,6 +151,7 @@ def extract_data(days):
 	dfSchema = build_schema("conv")
 	df = None
 	for day in days:
+                day = day.strftime("%Y%m%d")
 		df_1s = load1sDataPerDay(day, dfSchema)
 		df_5s = load5sDataPerDay(day)
 
@@ -173,15 +175,15 @@ def extract_data(days):
 	
 def main():
 
-    d1 = date.today() - timedelta(1)
-    d2 = date.today()
+    args = sys.argv[1:]
+    start_date = datetime.strptime(args[0],'%Y%m%d')
+    end_date = datetime.strptime(args[1],'%Y%m%d')
+    print("The start date is "+args[0])
+    print("The end date is "+args[1])
 	
-    delta = d2 - d1
-    days=[]
-    for i in range(-1, delta.days):
-		print((d1+timedelta(i)).strftime("%Y%m%d"))		
-		days.append((d1+timedelta(i)).strftime("%Y%m%d"))
-    
+    days = [start_date + timedelta(days = x) for x in range(0, (end_date-start_date).days)]
+    del args[0:1]
+
     df = extract_data(days)
     if df is None:
 		print("extract_data is done. ")
