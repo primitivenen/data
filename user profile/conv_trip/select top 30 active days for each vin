@@ -1,0 +1,4 @@
+select * from (
+select vin, start_day, 
+rank() over ( partition by vin order by start_day desc) as rank 
+from conv_trips_complete) t where rank <= 30;
