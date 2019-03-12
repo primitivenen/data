@@ -1,0 +1,34 @@
+drop table if exists am_peak_driving_by_day purge;
+CREATE TABLE am_peak_driving_by_day(
+	vin string, 
+    start_day string, 
+    daily_peak_driving_mins double, 
+    daily_driving_mins double, 
+    percent_daily_peak_driving double
+)
+
+drop table if exists pm_peak_driving_by_day purge;
+CREATE TABLE pm_peak_driving_by_day(
+	vin string, 
+    start_day string, 
+    daily_peak_driving_mins double, 
+    daily_driving_mins double, 
+    percent_daily_peak_driving double
+)
+
+drop table if exists long_distance_by_day purge;
+create table long_distance_by_day(
+	vin string, 
+    frequency int, 
+    percent_long_distance double, 
+    start_day string
+)
+
+drop table if exists night_driving_by_day purge;
+create table night_driving_by_day(
+	vin string, 
+    start_day string, 
+    daily_night_driving_mins double, 
+    daily_driving_mins double, 
+    percent_daily_night_driving double
+)
