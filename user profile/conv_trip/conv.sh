@@ -14,27 +14,27 @@ while [[ "$d" -le $endday ]]; do
 done
 hive -f get_trip_clean.hql
 echo "trip created,starting generating tables..."
-startday=$(date -d "$last_date" +"%Y%m%d")
-echo $startday, $endday
-d=$startday
-while [[ "$d" -le $end_date ]]; do
-  tmp=`date -d $d +"%Y-%m-%d"`
-  echo $tmp
-  sed -i -e "s/current_date/'$tmp'/g" get_am_peak_driving.hql
+#startday=$(date -d "$last_date" +"%Y%m%d")
+#echo $startday, $endday
+#d=$startday
+#while [[ "$d" -le $end_date ]]; do
+#  tmp=`date -d $d +"%Y-%m-%d"`
+#  echo $tmp
+  #sed -i -e "s/current_date/'$tmp'/g" get_am_peak_driving.hql
   hive -f get_am_peak_driving.hql
-  sed -i -e "s/'$tmp'/current_date/g" get_am_peak_driving.hql
+  #sed -i -e "s/'$tmp'/current_date/g" get_am_peak_driving.hql
   hive -f get_entropy.hql
-  sed -i -e "s/current_date/'$tmp'/g" get_long_distance.hql
+  #sed -i -e "s/current_date/'$tmp'/g" get_long_distance.hql
   hive -f get_long_distance.hql
-  sed -i -e "s/'$tmp'/current_date/g" get_long_distance.hql
-  sed -i -e "s/current_date/'$tmp'/g" get_night_driving.h ql
+  #sed -i -e "s/'$tmp'/current_date/g" get_long_distance.hql
+  #sed -i -e "s/current_date/'$tmp'/g" get_night_driving.h ql
   hive -f get_night_driving.hql
-  sed -i -e "s/'$tmp'/current_date/g" get_night_driving.hql
-  sed -i -e "s/current_date/'$tmp'/g" get_pm_peak_driving.hql
+  #sed -i -e "s/'$tmp'/current_date/g" get_night_driving.hql
+  #sed -i -e "s/current_date/'$tmp'/g" get_pm_peak_driving.hql
   hive -f get_pm_peak_driving.hql
-  sed -i -e "s/'$tmp'/current_date/g" get_pm_peak_driving.hql
-  d=$(date --date="$d+1 day" +%Y%m%d)
-done
+  #sed -i -e "s/'$tmp'/current_date/g" get_pm_peak_driving.hql
+#  d=$(date --date="$d+1 day" +%Y%m%d)
+#done
 hive -f get_combined.hql
 echo $endday >> $log_file
-
+     
