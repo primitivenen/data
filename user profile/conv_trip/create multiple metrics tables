@@ -17,7 +17,7 @@ CREATE TABLE pm_peak_driving_by_day2(
 );
 
 drop table if exists long_distance_by_day2 purge;
-create table long_distance_by_day(
+create table long_distance_by_day2(
 	vin string, 
     frequency int, 
     percent_long_distance double, 
@@ -25,7 +25,7 @@ create table long_distance_by_day(
 );
 
 drop table if exists night_driving_by_day2 purge;
-create table night_driving_by_day(
+create table night_driving_by_day2(
 	vin string, 
     start_day string, 
     daily_night_driving_mins double, 
