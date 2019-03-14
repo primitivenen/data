@@ -1,0 +1,52 @@
+PUT /trip_metrics
+{
+  "mappings": {
+    "doc": {
+      "properties": {
+        "vin": {
+          "type": "keyword"
+        },
+        "start_day":{
+          "type":"date",
+          "format": "yyyyMMdd"
+        },
+        "daily_night_driving_mins": {
+          "type": "double"
+        },
+        "percent_daily_night_driving": {
+          "type": "double"
+        },        
+        "long_distance_count": {
+          "type": "integer"
+        },   
+        "percent_long_distance": {
+          "type": "double"
+        }, 
+        "percent_am_peak": {
+          "type": "double"
+        }, 
+        "am_peak_mins": {
+          "type": "double"
+        }, 
+        "percent_pm_peak": {
+          "type": "double"
+        }, 
+        "pm_peak_mins": {
+          "type": "double"
+        }, 
+        "entropy_all": {
+          "type": "double"
+        }, 
+        "entropy_last_month": {
+          "type": "double"
+        }, 
+        "vintype": {
+          "type": "keyword"
+        },
+        "subtype": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
