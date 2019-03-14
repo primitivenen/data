@@ -1,0 +1,49 @@
+PUT /trips_complete
+{
+  "mappings": {
+    "doc": {
+      "properties": {
+        "vin": {
+          "type": "keyword"
+        },
+        "start_loc_location": {
+          "type": "geo_point"
+        },
+        "start_address": {
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "end_address": {
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "start_time":{
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss.S||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.SSS"
+        },
+        "start_day":{
+          "type":"date",
+          "format": "yyyyMMdd"
+        },
+        "end_loc_location": {
+          "type": "geo_point"
+        },
+        "end_time":{
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss.S||yyyy-MM-dd HH:mm:ss.SS||yyyy-MM-dd HH:mm:ss.SSS"
+        },
+        "distance": {
+          "type": "double"
+        }
+      }
+    }
+  }
+}
