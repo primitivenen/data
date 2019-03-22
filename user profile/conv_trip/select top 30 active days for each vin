@@ -2,3 +2,10 @@ select * from (
 select vin, start_day, 
 rank() over ( partition by vin order by start_day desc) as rank 
 from conv_trips_complete) t where rank <= 30;
+
+去重
+select vin, start_day, max(daily_night_driving_mins) as daily_night_driving_mins,max(percent_daily_night_driving) as percent_daily_night_driving, 
+max(long_distance_count) as long_distance_count, max(percent_long_distance) as percent_long_distance,
+max(percent_am_peak) as percent_am_peak, max(am_peak_mins) as am_peak_mins, max(percent_pm_peak) as percent_pm_peak, max(pm_peak_mins) as pm_peak_mins, 
+max(entropy_all) as entropy_all, max(entropy_last_month) as entropy_last_month,vintype, subtype from temp2
+group by vin, start_day, vintype, subtype
