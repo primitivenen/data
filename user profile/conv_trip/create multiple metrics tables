@@ -32,3 +32,11 @@ create table night_driving_by_day2(
     daily_driving_mins double, 
     percent_daily_night_driving double
 )
+
+drop table if exists entropy3 purge;
+create table entropy3(
+	vin string, 
+    start_day string, 
+    entropy_all double, 
+    entropy_last_month double
+)
