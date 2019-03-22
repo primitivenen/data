@@ -9,3 +9,8 @@ max(long_distance_count) as long_distance_count, max(percent_long_distance) as p
 max(percent_am_peak) as percent_am_peak, max(am_peak_mins) as am_peak_mins, max(percent_pm_peak) as percent_pm_peak, max(pm_peak_mins) as pm_peak_mins, 
 max(entropy_all) as entropy_all, max(entropy_last_month) as entropy_last_month,vintype, subtype from temp2
 group by vin, start_day, vintype, subtype
+
+select count(*) from 
+(select vin, start_day, count(*) as count from trip_metrics where start_day >= '20190201' and vintype = 'conv' and subtype = 'conv' 
+group by vin, start_day order by count desc) t
+where count = 2
