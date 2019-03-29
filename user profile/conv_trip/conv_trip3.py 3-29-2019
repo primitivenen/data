@@ -211,21 +211,22 @@ def clean_trip(hc):
 	
 	print('Trip Clean End')
 
-def metric_generation(hc, day):
+def metric_generation(hc):
 
-    print('Metric Generation Start for '+day.strftime("%Y-%m-%d"))
+    print('Metric Generation Start')
 	
-	sql = """drop table if exists ubi.am_peak_driving_by_day"""
-	hc.sql(sql)
+    sql = """drop table if exists ubi.am_peak_driving_by_day"""
+    hc.sql(sql)
 	
-	sql = """create table ubi.am_peak_driving_by_day as
+    sql = """create table ubi.am_peak_driving_by_day as
 	select vin, start_day, sum(daily_peak_driving_mins) as daily_peak_driving_mins, 
 sum(daily_driving_mins) as daily_driving_mins, sum(daily_peak_driving_mins)/sum(daily_driving_mins) as percent_daily_peak_driving 
 from (select e.vin, e.start_day, d.daily_peak_driving_mins, d.daily_driving_mins
 from
 (select vin, start_day, min(start_time) as start_time from ubi.conv_trips_complete group by vin, start_day) e
 inner join
-(select vin, start_day, from_unixtime(unix_timestamp(date_add(start_day, 30),'yyyy-MM-dd'),'yyyyMMdd') as thirty_day_after, sum(peak_driving_mins) as daily_peak_driving_mins, 
+(select vin, start_day, from_unixtime(unix_timestamp(date_add(from_unixtime(unix_timestamp(start_day,'yyyyMMdd'),'yyyy-MM-dd'), 30),'yyyy-MM-dd'),'yyyyMMdd') as thirty_day_after, 
+sum(peak_driving_mins) as daily_peak_driving_mins, 
 sum(driving_mins) as daily_driving_mins from 
 (select vin, start_day, (unix_timestamp(b.end_time)-unix_timestamp(b.start_time))/60 as driving_mins,  
  (case when b.peak_end_time > b.peak_start_time then (unix_timestamp(b.peak_end_time)-unix_timestamp(b.peak_start_time))/60 else 0 end) as peak_driving_mins from 
@@ -251,13 +252,18 @@ where e.start_day <= d.thirty_day_after and e.start_day > d.start_day
 ) f
 group by vin, start_day
 order by start_day desc, daily_peak_driving_mins desc"""
-	hc.sql(sql)
+    hc.sql(sql)
 	
-	sql = """drop table if exists ubi.long_distance_by_day"""
-	hc.sql(sql)
+    print("============================")
+    print("======AM_PEAK_DRIVE=========")
+    print("=========created============")
+    print("============================")
+	
+    sql = """drop table if exists ubi.long_distance_by_day"""
+    hc.sql(sql)
 	
     sql = """create table ubi.long_distance_by_day as
-select vin, start_day, sum(frequency), avg(percent_long_distance) as percent_long_distance
+select vin, start_day, sum(frequency) as frequency, avg(percent_long_distance) as percent_long_distance
 from
 (
 select c.vin, c.start_day, b.frequency, b.percent_long_distance
@@ -267,7 +273,7 @@ from
 inner join
 (
 select vin, sum(long_distance) as frequency, avg(long_distance) as percent_long_distance, start_day,
-from_unixtime(unix_timestamp(date_add(start_day,30),'yyyy-MM-dd'),'yyyyMMdd') as thirty_day_after
+from_unixtime(unix_timestamp(date_add(from_unixtime(unix_timestamp(start_day,'yyyyMMdd'),'yyyy-MM-dd'), 30),'yyyy-MM-dd'),'yyyyMMdd') as thirty_day_after
 from 
 (select vin, distance, start_day, case
   when distance >= 100 then 1
@@ -281,15 +287,18 @@ where c.start_day <= b.thirty_day_after and c.start_day > b.start_day
 group by vin, start_day
 order by frequency desc"""
     hc.sql(sql)
+	
+    print("============================")
+    print("======LONG_DISTANCE=========")
+    print("=========created============")
+    print("============================")
 
-	sql = """drop table if exists ubi.night_driving_by_day"""
-	hc.sql(sql)
+    sql = """drop table if exists ubi.night_driving_by_day"""
+    hc.sql(sql)
     
-	sql = """create table ubi.night_driving_by_day as
-select vin, start_day, sum(night_driving_mins) as daily_night_driving_mins, 
-sum(daily_driving_mins) as daily_driving_mins, sum(night_driving_mins)/sum(daily_driving_mins) as percent_daily_night_driving from 
-
-from
+    sql = """create table ubi.night_driving_by_day as
+select vin, start_day, sum(daily_night_driving_mins) as daily_night_driving_mins, 
+sum(daily_driving_mins) as daily_driving_mins, sum(daily_night_driving_mins)/sum(daily_driving_mins) as percent_daily_night_driving from 
 
 (
 select e.vin, e.start_day, d.daily_driving_mins, d.daily_night_driving_mins
@@ -301,7 +310,7 @@ from
 
 inner join
 
-(select vin, start_day,from_unixtime(unix_timestamp(date_add(start_day,30),'yyyy-MM-dd'),'yyyyMMdd') as thirty_day_after,
+(select vin, start_day,from_unixtime(unix_timestamp(date_add(from_unixtime(unix_timestamp(start_day,'yyyyMMdd'),'yyyy-MM-dd'), 30),'yyyy-MM-dd'),'yyyyMMdd') as thirty_day_after,
 sum(night_driving_mins) as daily_night_driving_mins,sum(driving_mins) as daily_driving_mins from
 
 (
@@ -310,7 +319,7 @@ select vin, start_day,
 (case when b.night_end_time > b.night_start_time then (unix_timestamp(b.night_end_time)-unix_timestamp(b.night_start_time))/60 else 0 end) as night_driving_mins 
 from 
 
-(select vin, start_time,a.night_start, case
+(select vin, start_day, start_time,a.night_start, case
   when start_time > (a.night_start) then cast(start_time as timestamp)
   else cast(a.night_start as timestamp)
   end as night_start_time,
@@ -338,10 +347,15 @@ where e.start_day <= d.thirty_day_after and e.start_day > d.start_day
 )f
 group by vin, start_day
 order by start_day desc, daily_night_driving_mins desc"""
-	hc.sql(sql)
+    hc.sql(sql)
+	
+    print("============================")
+    print("======NIGHT_DRIVE===========")
+    print("=========created============")
+    print("============================")
 
-	sql = """drop table if exists ubi.pm_peak_driving_by_day"""
-	hc.sql(sql)
+    sql = """drop table if exists ubi.pm_peak_driving_by_day"""
+    hc.sql(sql)
 	
     sql = """create table ubi.pm_peak_driving_by_day as
 	select vin, start_day, sum(daily_peak_driving_mins) as daily_peak_driving_mins, 
@@ -352,7 +366,7 @@ from
 (select vin, start_day, min(start_time) as start_time from ubi.conv_trips_complete group by vin, start_day
 ) e
 inner join
-(select vin, start_day, from_unixtime(unix_timestamp(date_add(start_day, 30),'yyyy-MM-dd'),'yyyyMMdd') as thirty_day_after, sum(peak_driving_mins) as daily_peak_driving_mins, 
+(select vin, start_day, from_unixtime(unix_timestamp(date_add(from_unixtime(unix_timestamp(start_day,'yyyyMMdd'),'yyyy-MM-dd'), 30),'yyyy-MM-dd'),'yyyyMMdd') as thirty_day_after, sum(peak_driving_mins) as daily_peak_driving_mins, 
 sum(driving_mins) as daily_driving_mins from 
 (select vin, start_day, (unix_timestamp(b.end_time)-unix_timestamp(b.start_time))/60 as driving_mins,  
  (case when b.peak_end_time > b.peak_start_time then (unix_timestamp(b.peak_end_time)-unix_timestamp(b.peak_start_time))/60 else 0 end) as peak_driving_mins from 
@@ -380,9 +394,14 @@ group by vin, start_day
 order by start_day desc, daily_peak_driving_mins desc
 	"""
     hc.sql(sql)
+	
+    print("============================")
+    print("======PM_PEAK_DRIVE=========")
+    print("=========created============")
+    print("============================")
     
-	sql = """drop table if exists ubi.entropy"""
-	hc.sql(sql)
+    sql = """drop table if exists ubi.entropy"""
+    hc.sql(sql)
 	
     sql = """create table ubi.entropy as
 select e.vin, d.start_day, e.entropy_all, d.entropy_last_month from
@@ -429,19 +448,30 @@ join
 				  ROUND(CAST(end_loc_lat as float), 3) as end_loc_lat, 
 				  ROUND(CAST(end_loc_lon as float), 3) as end_loc_lon, 
 				  1.0 / a.totalfrequency as probability 
-			 from ubi.conv_trips_complete join (select vin, count(*) as totalfrequency from ubi.conv_trips_complete 
-											group by vin
+			 from ubi.conv_trips_complete 
+		  join 
+		  (select vin, count(*) as totalfrequency from ubi.conv_trips_complete 
+											where conv_trips_complete.start_day>=from_unixtime(unix_timestamp(date_sub(current_date,30),'yyyy-MM-dd'),'yyyyMMdd')
+												group by vin
 			 ) a 
-			 on conv_trips_complete.vin = a.vin)
+			 on conv_trips_complete.vin = a.vin
 		) c
 		 group by vin, start_day, start_loc_lat, start_loc_lon, end_loc_lat, end_loc_lon 
 	)b
-	group by vin,start_day 
+	group by vin,start_day
 ) d
 on e.vin=d.vin """ 
     hc.sql(sql)
 	
-	sql = """create table ubi.conv_trip_metrics as
+    print("============================")
+    print("=========Entropy============")
+    print("=========created============")
+    print("============================")
+	
+    sql = """drop table if exists ubi.conv_trip_metrics"""
+    hc.sql(sql)
+	
+    sql = """create table ubi.conv_trip_metrics as
 select h.*, g.entropy_all, g.entropy_last_month 
 from ubi.entropy g join
 (
@@ -460,8 +490,24 @@ on a.vin=b.vin and a.start_day=b.start_day) d
 on c.vin=d.vin and c.start_day=d.start_day) f
 on e.vin=f.vin and e.start_day=f.start_day) h
 on h.vin = g.vin and h.start_day=g.start_day"""
-	hc.sql(sql)
+    hc.sql(sql)
     
+    print("============================")
+    print("=====conv_trip_metrics======")
+    print("=========created============")
+    print("============================")
+	
+    sql = """drop table if exists ubi.trip_metrics"""
+    hc.sql(sql)
+	
+    sql = """create table ubi.trip_metrics as 
+select *, 'conv' as vintype, 'conv' as subtype from ubi.conv_trip_metrics
+union all
+select guobiao_trip_metrics.*, 'guobiao' as vintype, vintypes.vintype as subtype  
+ from ubi.guobiao_trip_metrics join ubi.vintypes 
+ on guobiao_trip_metrics.vin=vintypes.vin"""
+    hc.sql(sql)
+	
     print('Trip Metric Generation End')
 	
 def main():
@@ -516,8 +562,7 @@ def main():
 	
     clean_trip(hc)
     
-    for d in days:
-		metric_generation(hc, d)
+    metric_generation(hc)
    
     
 if __name__ == '__main__':
