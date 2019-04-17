@@ -6,3 +6,11 @@
 .points(show=true,radius=5,fill=10).lines(show=true,width=0.5).fit(average).yaxis(min=0.85),
 .es(index=mileage_model_monthly_soh*, metric=avg:soh_seasonal, timefield=month_date).label('soh_seasonal')
 .color(#009CE0).lines(show=true,width=0.2).fit(average).yaxis(min=0.85).points(show=true,radius=5,fill=10)
+
+.es(index=guobiao_hourly_stats*, metric=avg:distance_driven, timefield=time_label).label('Today'),
+.es(index=hourly_stats*, metric=avg:distance_driven, timefield=time_label, offset=-7d).label('7d ago')
+
+.es(index=mileage_model_monthly_soh*, metric=avg:soh, timefield=month_date).label('soh').color(#FCC400)
+.points(show=true,radius=5,fill=10).lines(show=true,width=0.5).fit(average).yaxis(min=0.85),
+.es(index=mileage_model_monthly_soh*, metric=avg:soh_seasonal, timefield=month_date).label('soh_seasonal')
+.color(#009CE0).lines(show=true,width=0.2).fit(average).yaxis(min=0.85).points(show=true,radius=5,fill=10)
