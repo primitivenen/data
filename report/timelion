@@ -14,3 +14,9 @@
 .points(show=true,radius=5,fill=10).lines(show=true,width=0.5).fit(average).yaxis(min=0.85),
 .es(index=mileage_model_monthly_soh*, metric=avg:soh_seasonal, timefield=month_date).label('soh_seasonal')
 .color(#009CE0).lines(show=true,width=0.2).fit(average).yaxis(min=0.85).points(show=true,radius=5,fill=10)
+
+.es(index=hbase_ubi_stats*, metric=avg:sp40p, timefield=day).label('sp40p').color(#009CE0).points(show=true, 
+radius=2, fill=10).lines(show=true, width=0.5).legend(columns=2, position=ne)
+
+.es(index=hbase_ubi_stats*, metric=avg:tc, timefield=day).label('tc').color(#009CE0).points(show=true, 
+radius=2, fill=10).lines(show=true, width=0.5).legend(columns=2, position=ne)
