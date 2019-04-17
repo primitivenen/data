@@ -1,3 +1,8 @@
 .es(index=guobiao_daily_stats*, metric=sum:Distance, timefield=day).label('总行驶里程（单位：万公里）')
 .color(#68BC00).lines(show=true,width=0.2, fill=1)
 .fit(scale).yaxis(min=0.85).points(symbol=cross,show=true,radius=0.6,fill=1).cusum()
+
+.es(index=mileage_model_monthly_soh*, metric=avg:soh, timefield=month_date).label('soh').color(#FCC400)
+.points(show=true,radius=5,fill=10).lines(show=true,width=0.5).fit(average).yaxis(min=0.85),
+.es(index=mileage_model_monthly_soh*, metric=avg:soh_seasonal, timefield=month_date).label('soh_seasonal')
+.color(#009CE0).lines(show=true,width=0.2).fit(average).yaxis(min=0.85).points(show=true,radius=5,fill=10)
