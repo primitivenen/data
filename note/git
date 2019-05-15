@@ -1,0 +1,126 @@
+[wchen@namenode ~]$ cd /home/prod/
+[wchen@namenode prod]$ ls
+backup  data  git
+[wchen@namenode prod]$ sudo mkdir -p linda_code
+[wchen@namenode prod]$ ls
+backup  data  git  linda_code
+[wchen@namenode prod]$ cd /home/airflow
+[wchen@namenode airflow]$ cd /home/wchen
+[wchen@namenode ~]$ ls
+ag                     hbase_data-header.csv                                         temp2.csv
+collect                hive-dbs                                                      temp3.csv
+dead.letter            insert_ag_orc.sql                                             temp.csv
+derby.log              location_based                                                test
+dev                    m2.ipynb                                                      test.ipynb
+Downloads              m3.ipynb                                                      testnotebook
+dsa                    metastore_db                                                  tis
+dsb                    nohup.out                                                     trip_metrics.csv
+dsc                    part-r-00000-1a9822ba-b8fb-4d8e-844a-ea30d0801b9e.gz.parquet  trip_metrics.json
+dsd                    res                                                           trips_complete1.json
+ge3_core_stats.json    res.txt                                                       trips_complete2.json
+get_trip_sample.ipynb  run_daily_usage.py                                            trips_complete.csv
+guobiao                sav                                                           trips_complete.json
+hbase-data             src                                                           vis
+[wchen@namenode ~]$ mkdir git
+[wchen@namenode ~]$ cd git
+[wchen@namenode git]$ git clone git@gitlab.gaei.usa:big-data/common.git
+Cloning into 'common'...
+git@gitlab.gaei.usa's password:
+
+[wchen@namenode git]$ ssh-keygen -t rsa -b 2048
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/wchen/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/wchen/.ssh/id_rsa.
+Your public key has been saved in /home/wchen/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:aGlJiqi1yV/eyy7y2yH+kOowgKzGDF1UR0uNy/DgwsE wchen@namenode
+The key's randomart image is:
++---[RSA 2048]----+
+|   .....+o       |
+|   .E oo...      |
+|   ..o.=..       |
+|oo ooo.++        |
+|=.+ ..* S        |
+|*+ o o .         |
+|o+*   = .        |
+|.  +.=.* .       |
+|   .+o==B.       |
++----[SHA256]-----+
+[wchen@namenode git]$ less ~/.ssh/id_rsa.pub
+[wchen@namenode git]$ git clone git@gitlab.gaei.usa:big-data/common.git
+Cloning into 'common'...
+remote: Enumerating objects: 837, done.
+remote: Counting objects: 100% (837/837), done.
+remote: Compressing objects: 100% (373/373), done.
+remote: Total 837 (delta 442), reused 807 (delta 416)
+Receiving objects: 100% (837/837), 195.91 KiB | 0 bytes/s, done.
+Resolving deltas: 100% (442/442), done.
+[wchen@namenode git]$ ls
+common
+[wchen@namenode git]$ git config --global diff.external /home/prod/git/miscellaneous/git-diff-wrapper.sh
+[wchen@namenode git]$ git config --global --replace-all core.pager "less -F -X"
+[wchen@namenode git]$ cd common
+[wchen@namenode common]$ ls
+Airflow                   config_utils          os_utils          pyspark_utils
+collect_raw_data_utils    export_to_Hive_utils  pipelines         README.md
+command_line_args_parser  logging               pyspark_modeling  veh_meta_utils
+[wchen@namenode common]$ git status
+# On branch master
+nothing to commit, working directory clean
+[wchen@namenode common]$ git checkout -b linda_airflow_branch
+Switched to a new branch 'linda_airflow_branch'
+[wchen@namenode common]$ cd airflow
+-bash: cd: airflow: No such file or directory
+[wchen@namenode common]$ cd Airflow
+[wchen@namenode Airflow]$ ls
+airflow.cfg  dags  utils
+[wchen@namenode Airflow]$ cd dags
+[wchen@namenode dags]$ ls
+airflow_alerts.py   prod_conv.py                                               prod_guobiao_distance_based_soh.py
+check_es_server.py  prod_guobiao_ah_based_soh.py                               prod_guobiao.py
+prod_ag.py          prod_guobiao_distance_based_soh_prediction_variables.json
+[wchen@namenode dags]$ cp /home/airflow/dags/prod_guobiao.py .
+[wchen@namenode dags]$ git status
+# On branch linda_airflow_branch
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#       modified:   prod_guobiao.py
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+[wchen@namenode dags]$ git diff prod_guobiao.py
+external diff died, stopping at Airflow/dags/prod_guobiao.py.
+[wchen@namenode dags]$ git add prod_guobiao.py
+[wchen@namenode dags]$ git commit -m "linda and Tonatiuh's changes"
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: empty ident name (for <wchen@namenode.(none)>) not allowed
+[wchen@namenode dags]$ git config --global user.name wchen
+[wchen@namenode dags]$ git config --global user.email wchen@gacrndusa.com
+[wchen@namenode dags]$ git commit -m "linda and Tonatiuh's changes"
+[linda_airflow_branch 39cec91] linda and Tonatiuh's changes
+1 file changed, 32 insertions(+), 18 deletions(-)
+[wchen@namenode dags]$ git push origin linda_airflow_branch
+Counting objects: 9, done.
+Delta compression using up to 40 threads.
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 679 bytes | 0 bytes/s, done.
+Total 5 (delta 4), reused 0 (delta 0)
+remote:
+remote: To create a merge request for linda_airflow_branch, visit:
+remote:   https://gitlab.gaei.usa/big-data/common/merge_requests/new?merge_request%5Bsource_branch%5D=linda_airflow_branch
+remote:
+To git@gitlab.gaei.usa:big-data/common.git
+* [new branch]      linda_airflow_branch -> linda_airflow_branch
