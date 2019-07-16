@@ -6,6 +6,14 @@ import numpy as np
 from datetime import datetime, date, timedelta
 
 
+import logging
+
+sys.path.insert(0, "/home/prod/git/common/logging")
+
+from user_logging import assign_log_handler, close_log_handler
+
+
+
 # Build spark session
 import findspark
 
@@ -13,14 +21,16 @@ import findspark
 findspark.init("/usr/hdp/current/spark2-client")
 import pyspark
 conf = pyspark.SparkConf().setAll([('spark.app.name', 'guobiao_tsp_tbls.trip_map'), # App Name
+    ('spark.yarn.queue', 'prod'),
     ('spark.master', 'yarn'),              # spark run mode: locally or remotely
     ('spark.submit.deployMode', 'client'), # deploy in yarn-client or yarn-cluster
-    ('spark.executor.memory', '10g'),       # memory allocated for each executor
+    ('spark.executor.memory', '18g'),       # memory allocated for each executor, 10g
+    ('spark.yarn.executor.memoryOverhead','18g'),
     #('spark.memory.fraction', '0.7'),
-    ('spark.executor.cores', '3'),         # number of cores for each executor
-    ('spark.executor.instances', '5'),    # number of executors in total
-    ('spark.driver.maxResultSize', '5g'), # Result size is large, need to increase from default of 1g
-    ('spark.yarn.am.memory', '10g')])       # memory for spark driver (application master)
+    ('spark.executor.cores', '6'),         # number of cores for each executor,3
+    ('spark.executor.instances', '20'),    # number of executors in total
+    ('spark.driver.maxResultSize', '10g'), # Result size is large, need to increase from default of 1g,5g
+    ('spark.yarn.am.memory', '20g')])       # memory for spark driver (application master),10g
 sc = pyspark.SparkContext.getOrCreate(conf=conf)
 
 from pyspark.sql import HiveContext
@@ -41,6 +51,11 @@ def GenerateTrips(sc):
     sql = 'create table guobiao_tsp_tbls.starts_latest as select vin, veh_odo, max(ts_seconds) as ts_seconds from \
         guobiao_tsp_tbls.starts_redundant group by vin, veh_odo'
     hc.sql("""{}""".format(sql))
+    
+    print("============================")
+    print("=======starts_redundant=====")
+    print("=========created============")
+    print("============================")
 
     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.starts PURGE' 
     hc.sql("""{}""".format(sql))
@@ -50,6 +65,10 @@ def GenerateTrips(sc):
         on starts_redundant.vin = starts_latest.vin and starts_redundant.veh_odo == starts_latest.veh_odo and starts_redundant.ts_seconds = starts_latest.ts_seconds'
     hc.sql("""{}""".format(sql))
 
+    print("============================")
+    print("=======starts===============")
+    print("=========created============")
+    print("============================")
     
     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.ends_latest PURGE' 
     hc.sql("""{}""".format(sql))
@@ -57,6 +76,11 @@ def GenerateTrips(sc):
     sql = 'create table guobiao_tsp_tbls.ends_latest as select vin, veh_odo, min(ts_seconds) as ts_seconds \
     from guobiao_tsp_tbls.ends_redundant group by vin, veh_odo'
     hc.sql("""{}""".format(sql))
+    
+    print("============================")
+    print("=======ends_latest==========")
+    print("=========created============")
+    print("============================")
     
     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.ends PURGE' 
     hc.sql("""{}""".format(sql))
@@ -66,6 +90,11 @@ def GenerateTrips(sc):
         on ends_redundant.vin = ends_latest.vin and ends_redundant.veh_odo == ends_latest.veh_odo \
         and ends_redundant.ts_seconds = ends_latest.ts_seconds'
     hc.sql("""{}""".format(sql))
+    
+    print("============================")
+    print("=======ends=================")
+    print("=========created============")
+    print("============================")
     
     sql = 'drop table if exists guobiao_tsp_tbls.trip_candidates purge' 
     hc.sql("""{}""".format(sql))
@@ -77,6 +106,11 @@ def GenerateTrips(sc):
     from guobiao_tsp_tbls.starts inner join guobiao_tsp_tbls.ends on starts.vin = ends.vin \
     where ends.veh_odo >= starts.veh_odo and ends.ts_seconds > starts.ts_seconds and ends.ts_seconds - starts.ts_seconds < 50000 and ends.veh_odo - starts.veh_odo < 1000'
     hc.sql("""{}""".format(sql))
+    
+    print("============================")
+    print("=======trip_candidates======")
+    print("=========created============")
+    print("============================")
 
     sql = 'drop table if exists guobiao_tsp_tbls.trip_distance purge' 
     hc.sql("""{}""".format(sql))
@@ -85,6 +119,11 @@ def GenerateTrips(sc):
     from guobiao_tsp_tbls.trip_candidates group by vin, start_time'
     hc.sql("""{}""".format(sql))
 
+    print("============================")
+    print("=======trip_distance========")
+    print("=========created============")
+    print("============================")
+    
     sql = 'drop table if exists ubi.trips purge' 
     hc.sql("""{}""".format(sql))
     
@@ -118,6 +157,11 @@ def GenerateTrips(sc):
     where trip_candidates.distance % 5 = 4 and trip_distance.distance % 5 = 4'
     hc.sql("""{}""".format(sql))    
     
+    print("============================")
+    print("=======trips================")
+    print("=========created============")
+    print("============================")
+    
     sql = 'drop table if exists ubi.trip_distance_complete purge' 
     hc.sql("""{}""".format(sql))
     
@@ -125,108 +169,208 @@ def GenerateTrips(sc):
     from ubi.trips group by vin, end_time'
     hc.sql("""{}""".format(sql))
             
+    print("============================")
+    print("===trip_distance_complete===")
+    print("=========created============")
+    print("============================")
+    
     print('End')
 
 
 
-# def BatchGenerateTrips(sc):
-#     
-#     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.starts_redundant PURGE' 
-#     hc.sql("""{}""".format(sql))
-# 
-#     sql = 'create table guobiao_tsp_tbls.starts_redundant as select vin, loc_lat, loc_lon, bigint(ts / 1000) as ts_seconds, day, veh_odo from \
-#         guobiao_tsp_tbls.guobiao_raw_orc where veh_st = 1'
-#     hc.sql("""{}""".format(sql))
-# 
-#     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.ends_redundant PURGE' 
-#     hc.sql("""{}""".format(sql))
-# 
-#     sql = 'create table guobiao_tsp_tbls.ends_redundant as select vin, loc_lat, loc_lon, bigint(ts / 1000) as ts_seconds, day, veh_odo \
-#         from guobiao_tsp_tbls.guobiao_raw_orc where veh_st = 2'
-#     hc.sql("""{}""".format(sql))
-#     
-#     GenerateTrips(sc)
-#     
-#     sql = 'drop table if exists ubi.trips_complete purge' 
-#     hc.sql("""{}""".format(sql))
-#     
-#     sql = 'create table ubi.trips_complete as select distinct trips.* \
-#     from ubi.trips inner join ubi.trip_distance_complete \
-#     on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time'
-
-
 def BatchGenerateTrips(sc):
+    
+    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.starts_redundant PURGE' 
+    hc.sql("""{}""".format(sql))
+
+    sql = 'create table guobiao_tsp_tbls.starts_redundant as select vin, loc_lat, loc_lon, bigint(ts / 1000) as ts_seconds, day, veh_odo from \
+        guobiao_tsp_tbls.guobiao_raw_orc where veh_st = 1'
+    hc.sql("""{}""".format(sql))
+
+    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.ends_redundant PURGE' 
+    hc.sql("""{}""".format(sql))
+
+    sql = 'create table guobiao_tsp_tbls.ends_redundant as select vin, loc_lat, loc_lon, bigint(ts / 1000) as ts_seconds, day, veh_odo \
+        from guobiao_tsp_tbls.guobiao_raw_orc where veh_st = 2'
+    hc.sql("""{}""".format(sql))
+    
+    GenerateTrips(sc)
     
     sql = 'drop table if exists ubi.trips_complete purge' 
     hc.sql("""{}""".format(sql))
     
     sql = 'create table ubi.trips_complete as select distinct trips.* \
     from ubi.trips inner join ubi.trip_distance_complete \
-    on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
-    where int(trips.start_time) % 5 = 0'
-    
-    hc.sql("""{}""".format(sql))
-    
-    sql = 'insert into table ubi.trips_complete select distinct trips.* \
-    from ubi.trips inner join ubi.trip_distance_complete \
-    on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
-    where int(trips.start_time) % 5 = 1'
-    
-    hc.sql("""{}""".format(sql))
-    
-    sql = 'insert into table ubi.trips_complete select distinct trips.* \
-    from ubi.trips inner join ubi.trip_distance_complete \
-    on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
-    where int(trips.start_time) % 5 = 2'
+    on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time'
 
-    hc.sql("""{}""".format(sql))
-    
-    sql = 'insert into table ubi.trips_complete select distinct trips.* \
-    from ubi.trips inner join ubi.trip_distance_complete \
-    on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
-    where int(trips.start_time) % 5 = 3'
-    hc.sql("""{}""".format(sql))
-    
-    sql = 'insert into table ubi.trips_complete select distinct trips.* \
-    from ubi.trips inner join ubi.trip_distance_complete \
-    on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
-    where int(trips.start_time) % 5 = 4'
 
-    hc.sql("""{}""".format(sql))
+# def BatchGenerateTrips(sc):
     
+    # sql = 'drop table if exists ubi.trips_complete purge' 
+    # hc.sql("""{}""".format(sql))
+    
+    # sql = 'create table ubi.trips_complete as select distinct trips.* \
+    # from ubi.trips inner join ubi.trip_distance_complete \
+    # on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
+    # where int(trips.start_time) % 5 = 0'
+    
+    # hc.sql("""{}""".format(sql))
+    
+    # sql = 'insert into table ubi.trips_complete select distinct trips.* \
+    # from ubi.trips inner join ubi.trip_distance_complete \
+    # on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
+    # where int(trips.start_time) % 5 = 1'
+    
+    # hc.sql("""{}""".format(sql))
+    
+    # sql = 'insert into table ubi.trips_complete select distinct trips.* \
+    # from ubi.trips inner join ubi.trip_distance_complete \
+    # on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
+    # where int(trips.start_time) % 5 = 2'
+
+    # hc.sql("""{}""".format(sql))
+    
+    # sql = 'insert into table ubi.trips_complete select distinct trips.* \
+    # from ubi.trips inner join ubi.trip_distance_complete \
+    # on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
+    # where int(trips.start_time) % 5 = 3'
+    # hc.sql("""{}""".format(sql))
+    
+    # sql = 'insert into table ubi.trips_complete select distinct trips.* \
+    # from ubi.trips inner join ubi.trip_distance_complete \
+    # on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time \
+    # where int(trips.start_time) % 5 = 4'
+
+    # hc.sql("""{}""".format(sql))
+
+
+#def TestTodayTrips(sc, n):
+#    start_date = date(2018, 11, 7)- timedelta(n)
+#    end_date = date(2018, 11, 7)
+#    sql="""create table guobiao_tsp_tbls.end_time as select vin, max(bigint(ts / 1000)) as lasttime from guobiao_tsp_tbls.guobiao_raw_orc \
+#       where day='{}' and veh_st = 2 group by vin""".format(start_date.strftime("%Y%m%d")) 
+#    print(sql)    
 
 def GenerateTodayTrips(sc, n):
     start_date = date.today() - timedelta(n)
     end_date = date.today()
+    #start_date = date(2018, 11, 7)- timedelta(n)
+    #end_date = date(2018, 11, 7)
     print("Starting calculating from " + str(start_date))
 
     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.end_time PURGE'  
     hc.sql("""{}""".format(sql))   
-    sql="""create table guobiao_tsp_tbls.end_time as select vin, max(bigint(ts / 1000)) as lasttime from guobiao_tsp_tbls.guobiao_raw_orc where day='{0}' and veh_st = 2 group by vin""".format(start_date) 
+    sql="""create table guobiao_tsp_tbls.end_time as select vin, max(bigint(ts / 1000)) as lasttime from guobiao_tsp_tbls.guobiao_raw_orc \
+       where day='{}' and veh_st = 2 group by vin""".format(start_date.strftime("%Y%m%d")) 
+    print(sql)
     hc.sql("""{}""".format(sql))
+    
+    print("============================")
+    print("=======end_time=============")
+    print("=========created============")
+    print("============================")
+    
     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.starts_redundant PURGE' 
     hc.sql("""{}""".format(sql))
 
     sql = """create table guobiao_tsp_tbls.starts_redundant as select a.vin, a.loc_lat, a.loc_lon, bigint(a.ts / 1000) as ts_seconds, a.day, a.veh_odo from \
-       guobiao_tsp_tbls.guobiao_raw_orc a inner join guobiao_tsp_tbls.end_time b on a.vin = b.vin where a.day>='{0}' and a.veh_st = 1 and bigint(a.ts / 1000) > b.lasttime """.format(start_date)
+       guobiao_tsp_tbls.guobiao_raw_orc a inner join guobiao_tsp_tbls.end_time b on a.vin = b.vin where a.day>='{}' and a.veh_st = 1 and bigint(a.ts / 1000) > b.lasttime """.format(start_date.strftime("%Y%m%d"))
     hc.sql("""{}""".format(sql))
+    
+    print("============================")
+    print("=======starts_redundant=====")
+    print("=========created============")
+    print("============================")
 
     sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.ends_redundant PURGE' 
     hc.sql("""{}""".format(sql))
 
     sql = """create table guobiao_tsp_tbls.ends_redundant as select vin, loc_lat, loc_lon, bigint(ts / 1000) as ts_seconds, day, veh_odo \
-        from guobiao_tsp_tbls.guobiao_raw_orc where day='{0}' and veh_st = 2""".format(end_date)
+        from guobiao_tsp_tbls.guobiao_raw_orc where day='{}' and veh_st = 2""".format(end_date.strftime("%Y%m%d"))
     hc.sql("""{}""".format(sql))
     
-    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.end_time PURGE'     
-    sql="""create table guobiao_tsp_tbls.end_time as select vin, max(end_time) from guobiao_tsp_tbls.guobiao_raw_orc where day='{0}' and veh_st = 2 group by vin""".format(start_date) 
-    hc.sql("""{}""".format(sql)) 
+    print("============================")
+    print("=======ends_redundant=======")
+    print("=========created============")
+    print("============================")
     
     GenerateTrips(sc)
         
     sql = 'insert into table ubi.trips_complete select distinct trips.* \
     from ubi.trips inner join ubi.trip_distance_complete \
     on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time'
+    hc.sql("""{}""".format(sql)) 
+    
+    print("============================")
+    print("=======trips_complete=======")
+    print("=========Inserted===========")
+    print("============================")
+	
+	
+def GenerateTodayTrips2(sc, n):
+    start_date = date.today() - timedelta(n)
+    end_date = date.today()
+    #start_date = date(2019, 6, 30) - timedelta(n)
+    #end_date = date(2019, 6, 30) 
+    #start_date = date(2018, 11, 8)- timedelta(n)
+    #end_date = date(2018, 11, 8)
+    print("Starting calculating from " + str(start_date))
+
+    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.end_time PURGE'  
+    hc.sql("""{}""".format(sql))   
+    sql="""create table guobiao_tsp_tbls.end_time as select vin, max(bigint(ts / 1000)) as lasttime from guobiao_tsp_tbls.guobiao_raw_orc \
+       where day='{}' and veh_st = 2 group by vin""".format(start_date.strftime("%Y%m%d")) 
+    print(sql)
+    hc.sql("""{}""".format(sql)); logger.info(sql)
+    
+    print("============================")
+    print("=======end_time=============")
+    print("=========created============")
+    print("============================")
+
+    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.duplicates PURGE' 
+    hc.sql("""{}""".format(sql)); logger.info(sql)
+
+    sql = """create table guobiao_tsp_tbls.duplicates as select a.vin, a.loc_lat, a.loc_lon, bigint(a.ts / 1000) as ts_seconds, a.day, a.veh_odo from \
+       guobiao_tsp_tbls.guobiao_raw_orc a inner join guobiao_tsp_tbls.end_time b on a.vin = b.vin where a.day='{}' and a.veh_st = 1 and bigint(a.ts / 1000) <= b.lasttime """.format(start_date.strftime("%Y%m%d"))
+    hc.sql("""{}""".format(sql)); logger.info(sql)
+
+    
+    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.starts_redundant PURGE' 
+    hc.sql("""{}""".format(sql)); logger.info(sql)
+
+    sql = """create table guobiao_tsp_tbls.starts_redundant as select vin, loc_lat, loc_lon, bigint(ts / 1000) as ts_seconds, day, veh_odo from \
+       guobiao_tsp_tbls.guobiao_raw_orc where day<='{0}' and day>='{1}' and veh_st = 1 EXCEPT select * from guobiao_tsp_tbls.duplicates """.format(end_date.strftime("%Y%m%d"),start_date.strftime("%Y%m%d"))
+    hc.sql("""{}""".format(sql)); logger.info(sql)
+    
+    print("============================")
+    print("=======starts_redundant=====")
+    print("=========created============")
+    print("============================")
+
+    sql = 'DROP TABLE IF EXISTS guobiao_tsp_tbls.ends_redundant PURGE' 
+    hc.sql("""{}""".format(sql)); logger.info(sql)
+
+    sql = """create table guobiao_tsp_tbls.ends_redundant as select vin, loc_lat, loc_lon, bigint(ts / 1000) as ts_seconds, day, veh_odo \
+        from guobiao_tsp_tbls.guobiao_raw_orc where day<='{0}' and day>='{1}' and veh_st = 2""".format(end_date.strftime("%Y%m%d"),start_date.strftime("%Y%m%d"))
+    hc.sql("""{}""".format(sql)); logger.info(sql)
+    
+    print("============================")
+    print("=======ends_redundant=======")
+    print("=========created============")
+    print("============================")
+    
+    GenerateTrips(sc); logger.info("After calling GenerateTrips(sc)")
+        
+    sql = 'insert into table ubi.trips_complete select distinct trips.* \
+    from ubi.trips inner join ubi.trip_distance_complete \
+    on trips.vin = trip_distance_complete.vin and trips.start_time = trip_distance_complete.start_time and trips.end_time = trip_distance_complete.end_time'
+    hc.sql("""{}""".format(sql)) ; logger.info(sql)
+    
+    print("============================")
+    print("=======trips_complete=======")
+    print("=========Inserted===========")
+    print("============================")
 
     
 def hive2string(hc, query, colname):
@@ -265,10 +409,25 @@ def generateList(hc, start_day):
             outfile.write(vin + '\t' + str(res[vin]) + '\n')
     return res
 
-def addLocation(hc, p):
-    query = """SELECT distinct ROUND(CAST(start_loc_lat as float), 3) as loc_lat, ROUND(CAST(start_loc_lon as float), 3) as loc_lon from ubi.trips_complete where start_loc_lat LIKE p union SELECT distinct ROUND(CAST(end_loc_lat as float), 3) as loc_lat, ROUND(CAST(end_loc_lon as float), 3) as loc_lon from ubi.trips_complete where end_loc_lat LIKE p"""
+#def addLocation(hc, p):
+#    query = """SELECT distinct ROUND(CAST(start_loc_lat as float), 3) as loc_lat, ROUND(CAST(start_loc_lon as float), 3) as loc_lon from ubi.trips_complete where start_loc_lat LIKE p union SELECT distinct ROUND(CAST(end_loc_lat as float), 3) as loc_lat, ROUND(CAST(end_loc_lon as float), 3) as loc_lon from ubi.trips_complete where end_loc_lat LIKE p"""
+#    df=hive2pandas(hc, query)
+#    with open('/home/wchen/ubi/latlon2location_' + p.replace('%', '') + '.txt', 'w') as outfile:
+#        for x in range(len(df)):
+#            g = geocoder.gaode([df.iloc[x,0], df.iloc[x,1]], method='reverse', key='27522a3d9da8f4e80d6580c80d010d4c')
+#            adds = g.address
+#            if g.address is None:
+#                adds=''
+#            elif type(g.address)==list:
+#                adds=str(adds)
+#            outfile.write('%.3f'%(df.iloc[x,0]) + '\t' + '%.3f'%(df.iloc[x,1]) + '\t' + adds.encode('utf-8') + '\n')
+#    print('Done with location: ' + p)
+    
+def addLocation(hc):
+    query = """SELECT distinct CAST(start_loc_lat as float) as loc_lat, CAST(start_loc_lon as float) as loc_lon from ubi.trips_complete union SELECT distinct CAST(end_loc_lat as float) as loc_lat, CAST(end_loc_lon as float) as loc_lon from ubi.trips_complete where
+start_day>='20190212' and start_day<='20190313'"""
     df=hive2pandas(hc, query)
-    with open('/home/wchen/ubi/latlon2location_' + p.replace('%', '') + '.txt', 'w') as outfile:
+    with open('/home/wchen/dsc/latlon2location_0312' + '.txt', 'w') as outfile:
         for x in range(len(df)):
             g = geocoder.gaode([df.iloc[x,0], df.iloc[x,1]], method='reverse', key='27522a3d9da8f4e80d6580c80d010d4c')
             adds = g.address
@@ -276,8 +435,8 @@ def addLocation(hc, p):
                 adds=''
             elif type(g.address)==list:
                 adds=str(adds)
-            outfile.write('%.3f'%(df.iloc[x,0]) + '\t' + '%.3f'%(df.iloc[x,1]) + '\t' + adds.encode('utf-8') + '\n')
-    print('Done with location: ' + p)
+            outfile.write(df.iloc[x,0] + '\t' + df.iloc[x,1] + '\t' + adds.encode('utf-8') + '\n')
+    print('Done with location!')
 
 from pyspark.sql.types import StructType,StructField,DoubleType,StringType
 
@@ -286,6 +445,7 @@ def csv2hive(hc, infile):
     if os.path.isfile(infile):
         df = pd.read_csv(infile, sep='\t', encoding="utf-8")
         print(infile)
+        df.head()
         mySchema = StructType([StructField("loc_latitude", DoubleType(), True)\
                        ,StructField("loc_longtitude", DoubleType(), True)\
                        ,StructField("address", StringType(), True)])
@@ -294,13 +454,20 @@ def csv2hive(hc, infile):
         cols = [when(~col(x).isin("NULL", "NA", "NaN",""), col(x)).alias(x) for x in spark_df.columns]
         spark_df = spark_df.select(*cols)
         spark_df.registerTempTable('update_dataframe')
-        sql_cmd = """INSERT OVERWRITE TABLE ubi.address SELECT loc_latitude, loc_longtitude, address FROM update_dataframe"""
+        sql_cmd = """INSERT INTO TABLE ubi.address SELECT loc_latitude, loc_longtitude, address FROM update_dataframe"""
         print(sql_cmd)
 	hc.sql(sql_cmd)
 	print('Table address creation done.')
                 
             
 if __name__ == "__main__":
+
+    root_logger = logging.getLogger("")
+    logger_name = "trip_v3"
+    logger = logging.getLogger(logger_name)
+    assign_log_handler(root_logger=root_logger, log_file='/home/wchen/dsc/logging.dat')
+    logger.info("\n\n")
+
 #PrepareTodayData(sc) or BatchPrepareData(sc)
     args = sys.argv[1:]
     
@@ -327,9 +494,11 @@ if __name__ == "__main__":
         #if len(args[1]) != 8:
          #   print('invalid input: {}'.format(args[1]))
          #   sys.exit(1)
-	#GenerateTodayTrips2(sc, 39)11/8-12/17   12/17-12/28(11)  12/28-01/14 (17)  1/14-2/11(28)
-        GenerateTodayTrips(sc, 1)
+        #GenerateTodayTrips2(sc, 39)11/8-12/17   12/17-12/28(11)  12/28-01/14 (17)  1/14-2/11(28) 2/11-2/22(11) 2/22-3/13(19)no3/13 available  3/12-3/13(1)  3/13-3/31(18)  3/31-4/30(30)  4/30-5/31(31) 5/31-6/30(30)  6/30-7/16(16)
+        GenerateTodayTrips2(sc, 16); logger.info("I would not see this line")
+	#TestTodayTrips(sc, 1)
         del args[0]
+
         
     # run entire history
     elif args[0] == '--all':  
@@ -354,7 +523,8 @@ if __name__ == "__main__":
         
     # Get location records
     elif args[0] == '--location':
-        addLocation(hc, '%1')
+        #addLocation(hc, '%1')
+        addLocation(hc)
         del args[0]
     
     #Create and upload address table
