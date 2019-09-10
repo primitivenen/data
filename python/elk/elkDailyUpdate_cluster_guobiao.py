@@ -16,7 +16,7 @@ SET_3 = [] #"mileage_model_monthly_soh"
 SET_4 = [] #"guobiao_vin_ranking_ah"
         
 #VM_CREDENTIALS = "bitnami@172.15.5.29"
-ES_CREDENTIALS = "elastic:hfzdXseEdHVFUq86Y2U3"
+ES_CREDENTIALS = "elastic:xxxxxxx"
 LOCAL_DIRECTORY = "/home/elk-daily-updates/"
 TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss"
 ES_IP_PORT = "localhost:9200/"
