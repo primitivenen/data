@@ -1,0 +1,15 @@
+hive -e "set hive.cli.print.header=true;select * from a26_tsp_tbls.a26_gb_orc where vin in ('LNAA2AA19L5036036','LNAA2AA10K5013520','LNAA2AA10K5013548','LNAA2AA10K5018703','LNAA2AA10K5020872','LNAA2AA10K5026767','LNAA2AA11K5006236') and day >='20200501'"  | sed 's/[\t]/,/g'> testdata07152020.csv;
+
+create table tmp_test2
+as select *,
+case when vin='LNAA2AA19L5036036' then 'v0'
+when vin='LNAA2AA10K5013520' then 'v1'
+when vin='LNAA2AA10K5013548' then 'v2'
+when vin='LNAA2AA10K5018703' then 'v3'
+when vin='LNAA2AA10K5020872' then 'v4'
+when vin='LNAA2AA10K5026767' then 'v5'
+when vin='LNAA2AA11K5006236' then 'v6'
+end as vin2
+from tmp_test
+
+select `(vin)?+.+` from tmp_test2
