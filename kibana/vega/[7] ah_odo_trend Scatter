@@ -1,0 +1,32 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v2.6.0.json",
+  "title": "ah_odo_trend Scatter Plot",
+  "data": {
+    "url": {
+      "%context%": true,
+      "%timefield%": "day",
+      "index": "ah_trend*",
+      "body": {
+        "size": 10000,
+        "_source": [
+          "day",
+          "ah_day_trend",
+          "ah_day_pred",
+          "ah_odo_trend",
+          "ah_odo_pred"
+        ]
+      }
+    },
+    "format": {"property": "hits.hits"}
+  },
+  "transform": [{"calculate": "toDate(datum._source['day'])", "as": "day"}],
+  "mark": {"type": "point",  "style": "boxplot-outliers"},
+  "encoding": {
+    "x": {"field": "day", "type": "temporal", "timeUnit": "yearmonthdate",
+      "scale": {"type": "utc"}},
+    "y": {
+      "field": "_source.ah_odo_trend",
+      "type": "quantitative"
+    }
+  }
+}
