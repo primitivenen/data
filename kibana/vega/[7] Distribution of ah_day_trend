@@ -1,0 +1,60 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v2.6.0.json",
+  "title": "ah_day_trend Bar Plot",
+  "data": {
+    "url": {
+      "%context%": true,
+      "%timefield%": "day",
+      "index": "ah_trend*",
+      "body": {
+        "size": 10000,
+        "_source": [
+          "day",
+          "ah_day_trend",
+          "ah_day_pred",
+          "ah_odo_trend",
+          "ah_odo_pred"
+        ]
+      }
+    },
+    "format": {"property": "hits.hits"}
+  },
+  "transform": [
+    {
+      "bin": true,
+      "field": "_source.ah_day_trend",
+      "as": "ah_day_trend"
+    }
+     ],
+  "mark": {"type": "bar"
+    },
+  "encoding": {
+    "x": {
+    "bin": {
+        "binned": true
+      },
+      "field": "ah_day_trend", 
+      "type": "quantitative", 
+      "scale": {"type": "utc"}
+  },
+    "y": {
+      "aggregate": "count",
+      "type": "quantitative",
+      "scale": {"type": "log"}
+    }
+  },
+  "layer": [{
+    "mark": "bar"
+  }, {
+    "mark": {
+      "type": "text",
+      "style": "label",
+      "align": "left",
+      "baseline": "middle",
+      "fontSize": 14
+    },
+    "encoding": {
+      "text": {"field": "ah_day_trend", "aggregate": "count"}
+    }
+  }]
+}
