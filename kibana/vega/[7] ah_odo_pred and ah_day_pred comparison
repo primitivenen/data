@@ -1,0 +1,66 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v2.json",
+  "title": " avg ah_odo_pred (Green) v.s. avg ah_day_pred (Orange)",
+  "data": {
+    "url": {
+      "%context%": true,
+      "%timefield%": "day",
+      "index": "ah_trend*",
+      "body": {
+        "size": 10000,
+        "_source": [
+          "day",
+          "ah_day_trend",
+          "ah_day_pred",
+          "ah_odo_trend",
+          "ah_odo_pred"
+        ]
+      }
+    },
+    "format": {"property": "hits.hits"}
+  },
+  "transform": [{"calculate": "toDate(datum._source['day'])", "as": "day"}],
+  "mark": "line",
+  "encoding": {
+    "x": {"field": "day", "type": "temporal", "timeUnit": "yearmonthdate",
+      "scale": {"type": "utc"}}
+  },
+  "layer": [
+  {
+    "mark": {"type":"line", "color":"green"},
+    "encoding": {
+      "y": {
+        "aggregate": "average",
+        "field": "_source.ah_odo_pred",
+        "type": "quantitative",
+        "axis": {"title": "avg ah_odo_pred (Green)", "titleColor": "#85C5A6"},
+        "scale": {"domain": [155,165]}
+        },
+      "y2": {
+        "aggregate": "average",
+        "field": "_source.ah_day_trend",
+        "type": "quantitative"
+      },
+      "color": {
+                "type": "nominal"
+            }
+    }
+  }, {
+    "mark":{"type": "line", "stroke": "orange", "interpolate": "monotone"},
+    "encoding": {
+      "y": {
+        "aggregate": "average",
+        "field": "_source.ah_day_pred",
+        "type": "quantitative",
+        "axis": {"title": "avg ah_day_pred (Orange)", "titleColor":"#85A9C5"},
+        "scale": {"domain": [155,165]}
+      }
+  },
+  "color": {
+                "type": "nominal"
+            }
+  }
+  ],
+  "resolve": {"scale": {"y": "independent"}}
+}
+
