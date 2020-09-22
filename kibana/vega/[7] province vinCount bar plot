@@ -1,0 +1,40 @@
+{
+"$schema": "https://vega.github.io/schema/vega-lite/v2.6.0.json",
+  "description": "color scale.",
+  
+  "data": {
+      "url": {
+      "%context%": true,
+      "index": "a26_vin_ranking_ah",
+      "body": {
+        "size": 0,
+        "aggs":{
+          "provinces":{
+            "terms":{
+              "field" : "province_en.keyword"
+            }
+          }
+        }
+      }
+    },
+    "format": {
+      "type": "json",
+      "property": "aggregations.provinces.buckets"
+    }
+  },
+  
+  "mark": "bar",
+  
+  "encoding": {
+    "x": {"field": "key","type": "ordinal"},
+    "y": {"field": "doc_count","type": "quantitative"},
+    "color": {
+      "field": "doc_count",
+      "type": "quantitative",
+      "scale": {
+        "domain": [5000,500000,200000, 1300000],
+        "range": ["#ff7f0e","#e7ba52","#17becf", "teal"]
+      }
+    }
+  }
+}
