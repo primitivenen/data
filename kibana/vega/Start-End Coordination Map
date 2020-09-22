@@ -1,0 +1,55 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v4.0.json",
+  "config": {
+    "kibana": {"type": "map", "latitude": 31, "longitude": 121, "zoom": 5}
+  },
+  "data": [
+    {
+      "name": "points",
+      "%context%": true,
+      "url": {
+        "index": "trips_complete*",
+        "size": 50,
+        "body": {
+          "_source": ["vin", "start_loc_location.lat", "start_loc_location.lon", "end_loc_location.lat", "end_loc_location.lon"],
+          "query": {
+            "match_all": {}
+          }
+        }
+      },
+      "format": {"type": "json", "property": "hits.hits"},
+      "transform": [
+        {
+          "type": "formula",
+          "as": "lon",
+          "expr": "datum._source.start_loc_location.lon"
+        },
+        {
+          "type": "formula",
+          "as": "lat",
+          "expr": "datum._source.start_loc_location.lat"
+        },
+        {
+          "type": "geopoint",
+          "projection": "projection",
+          "fields": ["lon", "lat"]
+        }
+      ]
+    }
+  ],
+  "marks": [
+    {
+      "type": "symbol",
+      "from": {"data": "points"},
+      "encode": {
+        "enter": {
+          "size": {"value": 100},
+          "fill": {"value": "black"},
+          "stroke": {"value": "orange"},
+          "tooltip": [{"signal": "{title: datum._source.city_en}"}]
+        },
+        "update": {"x": {"field": "x"}, "y": {"field": "y"}}
+      }
+    }
+  ]
+}
