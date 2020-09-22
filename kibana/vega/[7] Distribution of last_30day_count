@@ -1,0 +1,67 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v2.6.0.json",
+  "title": "last_30day_count Bar Plot",
+  "data": {
+    "url": {
+      "%context%": true,
+      "%timefield%": "day",
+      "index": "ah_trend*",
+      "body": {
+        "size": 10000,
+        "_source": [
+          "day",
+          "ah_day_trend",
+          "ah_day_pred",
+          "ah_odo_trend",
+          "ah_odo_pred",
+          "odo",
+          "day_count",
+          "last_30day_count"
+        ]
+      }
+    },
+    "format": {"property": "hits.hits"}
+  },
+  "transform": [
+    {
+      "bin": true,
+      "field": "_source.last_30day_count",
+      "as": "last_30day_count"
+    }
+     ],
+  "mark": {"type": "bar"
+    },
+  "encoding": {
+    "x": {
+      "bin": {"maxbins": 9},
+      "field": "last_30day_count", 
+      "type": "quantitative", 
+      "scale": {"type": "utc"}
+  },
+    "y": {
+      "aggregate": "count",
+      "type": "quantitative"
+    },
+    "legend": {"title": "range"},
+    "color": {
+      "value": "#f2b82c"
+    }
+  },
+  "layer": [{
+    "mark": "bar"
+  }, {
+    "mark": {
+      "type": "text",
+      "style": "label",
+      "align": "left",
+      "baseline": "middle",
+      "fontSize": 14
+    },
+    "encoding": {
+      "text": {"field": "last_30day_count", "aggregate": "count"},
+      "color": {
+      "value": "black"
+    }
+    }
+  }]
+}
