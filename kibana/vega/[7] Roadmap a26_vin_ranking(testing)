@@ -1,0 +1,131 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v4.0.json",
+  "config": {
+    "kibana": {
+      "type": "map",
+      "latitude": 30,
+      "longitude": 110,
+      "zoom": 4,
+      "minZoom": 2,
+      "maxZoom": 9,
+      "zoomControl": false,
+      "delayRepaint": false,
+      "controlsDirection": "horizontal"
+    }
+  },
+  "data": [
+      {
+       "name": "points",
+       "url": {
+         "index": "a26_vin_ranking_ah",
+        "size": 300, 				
+         "body": {
+           "_source": ["vehicle_location", "city_en", "vin"],
+           "query": {
+             "match_all": {}
+           }
+         }
+       }
+       "format": {"type": "json", "property": "hits.hits"},
+       "transform": [
+         {
+           "type": "formula",
+           "as": "lon",
+           "expr": "datum._source.vehicle_location.lon"
+         },
+         {
+           "type": "formula",
+           "as": "lat",
+           "expr": "datum._source.vehicle_location.lat"
+         },
+         {
+           "type": "geopoint",
+           "projection": "projection",
+           "fields": [
+             {"expr": "datum._source.vehicle_location.lon"},
+             {"expr": "datum._source.vehicle_location.lat"}
+           ],
+           "as": ["x", "y"]
+         }
+       ]
+     } 
+,
+    {
+      "name": "contours",
+      "source": "points",
+      "transform": [
+        {
+          "type": "contour",
+          "x": {"expr": "datum.x"},
+          "y": {"expr": "datum.y"},
+          "bandwidth": {"signal": "bandwidth"},
+          "cellSize": {"signal": "cellSize"},
+          "size": [{"signal": "width"}, {"signal": "height"}],
+          "count": {"signal": "count"}
+        }
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "color",
+      "type": "sequential",
+      "zero": true,
+      "domain": {"data": "contours", "field": "value"},
+      "range": {"scheme": "yelloworangered"}
+    }
+  ],
+  "marks": [
+    {
+      "type": "path",
+      "interactive": false,
+      "from": {"data": "contours"},
+      "encode": {
+        "enter": {
+          "fill": {"scale": "color", "field": "value"},
+          "fillOpacity": {"value": 0.35}
+        }
+      },
+      "transform": [{"type": "geopath", "field": "datum"}]
+    },
+    {
+      "type": "symbol",
+      "interactive": false,
+      "from": {"data": "points"},
+      "encode": {
+        "update": {
+          "fill": {"value": "#ff0000"},
+          "fillOpacity": [
+            {"test": "!show_points", "value": 0},
+            {"value": 0.02}
+          ],
+          "size": {"signal": "50*pow(2,zoom-4)"},
+          "x": {"signal": "datum.x"},
+          "y": {"signal": "datum.y"}
+        }
+      }
+    }
+  ],
+  "signals": [
+    {
+      "name": "cellSize",
+      "value": 6,
+      "bind": {"input": "range", "min": 1, "max": 20, "step": 1}
+    },
+    {
+      "name": "bandwidth",
+      "value": 18,
+      "bind": {"input": "range", "min": 0, "max": 30, "step": 1}
+    },
+    {
+      "name": "count",
+      "value": 50,
+      "bind": {"input": "range", "min": 0, "max": 300, "step": 50}	
+    },
+    {
+      "name": "show_points",
+      "value": true,
+      "bind": {"input": "checkbox"}
+    }
+  ]
+}
