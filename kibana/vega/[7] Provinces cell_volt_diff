@@ -1,0 +1,86 @@
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v2.6.0.json",
+  "title": "Provinces soh_seasonal vs. cell_volt_diff",
+  "data": {
+   "url": {
+    "%context%": true,
+    "%timefield%": "day",
+    "index": "a26_vin_ranking_ah",
+    "body": {
+      "size": 100,
+      "_source": [ "day", "normalized_distance_driven", "vin", "province_en"
+      "cell_volt_diff", "soh_seasonal"]
+    }
+  },
+  "format": {"property": "hits.hits"}
+},
+  "transform": [{"calculate": "toDate(datum._source['day'])", "as": "time"}],
+  "vconcat": [
+    {
+      "encoding": {
+        "color": {
+          "condition": {
+            "title": "Province",
+            "field": "_source.province_en",
+            "scale": {
+              "domain": ["anhui", "beijing", "chongqing", "fujian", "guangdong",
+              "guangxizhuangzuzizhiqu", "hainan", "hebei", "henan", "hubei","jiangsu",
+              "shandong", "shanghai", "shanxi", "tianjin", "zhejiang"],
+              "range": ["#fdd0a2","#fdae6b", "#fd8d3c","#ff7f0e","#c7e9c0","#a1d99b","#74c476", "#31a354","#cedb9c","#b5cf6b", "#8ca252","#637939","#9ecae1","#6baed6", "#3182bd", "#1f77b4"]
+            },
+            "selection": "brush",
+            "type": "nominal"
+          },
+          "value": "lightgray"
+        },
+        "size": {
+          "title": "cell_volt_diff",
+          "field": "_source.cell_volt_diff",
+          "scale": {"domain": [0.01, 0.03]},
+          "type": "quantitative"
+        },
+        "x": {
+          "axis": {"title": "Provinces", "labelAngle": 15},
+          "field": "_source.province_en",
+          "type": "nominal"
+        },
+        "y": {
+          "axis": {"title": "soh_seasonal"},
+          "field": "_source.soh_seasonal",
+          "scale": {"domain": [0.85, 1.1]},
+          "type": "quantitative"
+        }
+      },
+      "width": 600,
+      "height": 300,
+      "mark": "point",
+      "selection": {"brush": {"encodings": ["x"], "type": "interval"}},
+      "transform": [{"filter": {"selection": "click"}}]
+    },
+    {
+      "encoding": {
+        "color": {
+          "condition": {
+            "field": "_source.province_en",
+            "scale": {
+              "domain": ["anhui", "beijing", "chongqing", "fujian", "guangdong",
+              "guangxizhuangzuzizhiqu", "hainan", "hebei", "henan", "hubei","jiangsu",
+              "shandong", "shanghai", "shanxi", "tianjin", "zhejiang"],
+              "range": ["#fdd0a2","#fdae6b", "#fd8d3c","#ff7f0e","#c7e9c0","#a1d99b","#74c476", "#31a354","#cedb9c","#b5cf6b", "#8ca252","#637939","#9ecae1","#6baed6", "#3182bd", "#1f77b4"]
+            },
+            "selection": "click",
+            "type": "nominal"
+          },
+          "value": "lightgray"
+        },
+        "x": {"aggregate": "count", "type": "quantitative"},
+        "y": {"title": "Provinnces", "field": "_source.province_en", "type": "nominal"}
+      },
+      "width": 600,
+      "mark": "bar",
+      "selection": {"click": {"encodings": ["color"], "type": "multi"}},
+      "transform": [{"filter": {"selection": "brush"}}]
+    }
+  ]
+}
