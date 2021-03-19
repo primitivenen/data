@@ -11,7 +11,7 @@ class HbaseConnector:
         This class provides all Hbase related functions.
     """
 
-    def __init__(self, hbase_port: int = 9090, hbase_host: str = 'ip-10-0-15-199.ec2.internal'):
+    def __init__(self, hbase_port: int = 9090, hbase_host: str = 'ip-10-0-15-xxx.ec2.internal'):
         self.host = hbase_host
         self.port = hbase_port
         self.conn = happybase.Connection(host=self.host, port=self.port)
