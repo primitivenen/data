@@ -2,7 +2,6 @@
 ```
 """
 @date 2021/3/10
-@author: Linda.Chen
 """
 import happybase
 
