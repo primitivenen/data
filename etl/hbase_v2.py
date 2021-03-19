@@ -21,13 +21,13 @@ class UserData:
         This class provides PySpark functions for data input.
     """
 
-    def __init__(self, sql_context, hive_table='onzoom_user_activity_data', hive_db='dw', partition="2021-02-24-01"):
+    def __init__(self, sql_context, hive_table='xxx_ctivity_data', hive_db='dw', partition="2021-02-24-01"):
         self.sql_context = sql_context
         self.hive_table = hive_table
         self.hive_db = hive_db
         self.partition = partition
 
-    def get_onzoom_user_activity_data(self):
+    def get_xxx_user_activity_data(self):
         sql = """                                                                                                                              
                 select                                                                                                                         
                     t.*,                                                                                                                       
@@ -122,20 +122,20 @@ if __name__ == "__main__":
         current_str_time = sys.argv[1]
         on_dev = True
 
-    spark = ss_util.get_spark_session(app_name="onzoom_user_activity_sum_generator_Linda",
+    spark = ss_util.get_spark_session(app_name="xxx_user_activity_sum_generator_Linda",
                                       configs={"spark.serializer": "org.apache.spark.serializer.KryoSerializer",
                                                "spark.sql.hive.convertMetastoreParquet": "false"},
                                       enable_hive=True)
 
-    logger = ss_util.get_logger(spark, "onzoom_user_activity_sum")
+    logger = ss_util.get_logger(spark, "xxx_user_activity_sum")
 
     config_file = "./recommender.json"
     config = json_util.load_json(config_file)
     config_etl = config.get("etl")
     hive_db = config_etl.get("hive_db")
-    hive_onzoom_user_activity_data = config_etl.get("hive_onzoom_user_activity_data")
-    hbase_onzoom_user_activity_sum = config_etl.get("hbase_onzoom_user_activity_sum")
-    hbase_onzoom_user_updated = config_etl.get("hbase_onzoom_user_updated")
+    hive_xxx_user_activity_data = config_etl.get("hive_xxx_user_activity_data")
+    hbase_xxx_user_activity_sum = config_etl.get("hbase_xxx_user_activity_sum")
+    hbase_xxx_user_updated = config_etl.get("hbase_xxx_user_updated")
     hb_port = config_etl.get("hbase_port")
     hb_host = config_etl.get("hbase_host")
     schedule_time_delta = int(config_etl.get("schedule_time_delta"))
@@ -144,12 +144,12 @@ if __name__ == "__main__":
     start_time = end_time - timedelta(hours=schedule_time_delta)
     start_str_time = start_time.strftime("%Y-%m-%d-%H")
 
-    data_extractor = UserData(spark, hive_onzoom_user_activity_data, hive_db, start_str_time)
-    hive_data = data_extractor.get_onzoom_user_activity_data()
+    data_extractor = UserData(spark, hive_xxx_user_activity_data, hive_db, start_str_time)
+    hive_data = data_extractor.get_xxx_user_activity_data()
 
     hbase_con = HbaseConnector(hb_port, hb_host)
-    table = hbase_con.get_table(hbase_onzoom_user_activity_sum)
-    user_table = hbase_con.get_table(hbase_onzoom_user_updated)
+    table = hbase_con.get_table(hbase_xxx_user_activity_sum)
+    user_table = hbase_con.get_table(hbase_xxx_user_updated)
 
     columns = {'user_id': 'uid', 'event_id': 'eid', 'annotation': 'ant', 'click': 'click',
                'gift': 'gift', 'like_event': 'like', 'order_event': 'order', 'unlike_event': 'unlike',
