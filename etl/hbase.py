@@ -57,7 +57,7 @@ sql = """
             event_id,
             annotation) t""".format(
     "recommender",
-    "onzoom_user_activity_data",
+    "xxx_user_activity_data",
     "2021",
     "02",
     "18",
@@ -72,8 +72,8 @@ tupleList = [{"user_id": x["user_id"], "event_id": x["event_id"], "annotation": 
 hbase_con = happybase.Connection(host='ip-10-0-15-27.ec2.internal', port=9090)
 print(hbase_con.tables())
 
-table = hbase_con.table('recommender:onzoom_user_activity_sum')
-user_table = hbase_con.table('recommender:onzoom_user_updated')
+table = hbase_con.table('recommender:xxx_user_activity_sum')
+user_table = hbase_con.table('recommender:xxx_user_updated')
 
 columns = {'annotation': 'ant', 'click': 'click', 'gift': 'gift', 'like_event': 'like',
            'order_event': 'order', 'unlike_event': 'unlike', 'rating': 'rating', 'log_time': 'lgt', 'is_liked':'isliked'}
