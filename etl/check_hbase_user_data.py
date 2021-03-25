@@ -1,6 +1,5 @@
 """
 @date 2021/3/10
-@author: Linda.Chen
 
 Validate user table on Hbase
 (Testing Stage)
@@ -20,14 +19,14 @@ class UserData:
         This class provides PySpark functions for data input.
     """
 
-    def __init__(self, sql_context: SparkSession, hive_table: str = 'onzoom_user_activity_data', db: str = 'dw',
+    def __init__(self, sql_context: SparkSession, hive_table: str = 'xxx_user_activity_data', db: str = 'dw',
                  partition: str = "2021-02-24-01"):
         self.sql_context = sql_context
         self.hive_table = hive_table
         self.db = hive_db
         self.partition = partition
 
-    def get_onzoom_user_activity_data(self) -> List[Dict[str, str]]:
+    def get_xxxx_user_activity_data(self) -> List[Dict[str, str]]:
         sql = """                                                                                                                              
                 select                                                                                                                         
                     t.*,                                                                                                                       
@@ -91,20 +90,20 @@ if __name__ == "__main__":
         current_str_time = sys.argv[1]
         on_dev = True
 
-    spark = ss_util.get_spark_session(app_name="onzoom_user_activity_sum_generator_Linda",
+    spark = ss_util.get_spark_session(app_name="xxxx_user_activity_sum_generator_Linda",
                                       configs={"spark.serializer": "org.apache.spark.serializer.KryoSerializer",
                                                "spark.sql.hive.convertMetastoreParquet": "false"},
                                       enable_hive=True)
 
-    logger = ss_util.get_logger(spark, "onzoom_user_activity_sum")
+    logger = ss_util.get_logger(spark, "xxxx_user_activity_sum")
 
     config_file = "./recommender.json"
     config = json_util.load_json(config_file)
     config_etl = config.get("etl")
     hive_db = config_etl.get("hive_db")
-    hive_onzoom_user_activity_data = config_etl.get("hive_onzoom_user_activity_data")
-    hbase_onzoom_user_activity_sum = config_etl.get("hbase_onzoom_user_activity_sum")
-    hbase_onzoom_user_updated = config_etl.get("hbase_onzoom_user_updated")
+    hive_xxx_user_activity_data = config_etl.get("hive_xxx_user_activity_data")
+    hbase_xxx_user_activity_sum = config_etl.get("hbase_xxx_user_activity_sum")
+    hbase_xxx_user_updated = config_etl.get("hbase_xxx_user_updated")
     hb_port = config_etl.get("hbase_port")
     # hb_host = config_etl.get("hbase_host")
     schedule_time_delta = int(config_etl.get("schedule_time_delta"))
@@ -113,12 +112,12 @@ if __name__ == "__main__":
     start_time = end_time - timedelta(hours=schedule_time_delta)
     start_str_time = start_time.strftime("%Y-%m-%d-%H")
 
-    data_extractor = UserData(spark, hive_onzoom_user_activity_data, hive_db, start_str_time)
-    hive_data = data_extractor.get_onzoom_user_activity_data()
+    data_extractor = UserData(spark, hive_xxx_user_activity_data, hive_db, start_str_time)
+    hive_data = data_extractor.get_xxx_user_activity_data()
 
     hbase_con = HbaseConnector(hb_port)
-    table = hbase_con.get_table(hbase_onzoom_user_activity_sum)
-    user_table = hbase_con.get_table(hbase_onzoom_user_updated)
+    table = hbase_con.get_table(hbase_xxx_user_activity_sum)
+    user_table = hbase_con.get_table(hbase_xxx_user_updated)
 
     cf_name = 'cf'
     counter = 0
