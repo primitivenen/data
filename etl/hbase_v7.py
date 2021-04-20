@@ -1,0 +1,218 @@
+@date 2021/3/10
+
+Updating sum table incrementally using HBase
+================
+"""
+import sys
+import time
+from datetime import datetime, timedelta
+from pyspark.sql import SparkSession, HiveContext
+from typing import *
+
+from recommender.common.util import json_util, sparksession_util as ss_util
+from recommender.common.util.hbase_util import HbaseConnector
+from recommender.common.util.data_quality_check import AlarmMsg, Alarm
+
+
+class UserData:
+    """
+        This class provides PySpark functions for data input.
+    """
+
+    def __init__(self, sql_context: SparkSession, hive_table: str = 'xxxx_user_activity_data', db: str = 'dw',
+                 partition: str = "2021-02-24-01"):
+        self.sql_context = sql_context
+        self.hive_table = hive_table
+        self.db = hive_db
+        self.partition = partition
+
+    def get_xxxx_user_activity_data(self) -> List[Dict[str, str]]:
+        sql = """                                                                                                                              
+                select                                                                                                                         
+                    t.*,                                                                                                                       
+                    case                                                                                                                       
+                        when t.like_event_time is NULL and t.unlike_event_time is NULL then NULL                                               
+                        when t.like_event_time is NULL and t.unlike_event_time is NOT NULL then false                                          
+                        when t.like_event_time is NOT NULL and t.unlike_event_time is NULL then true                                           
+                        when t.like_event_time > t.unlike_event_time then true                                                                 
+                        else false                                                                                                             
+                    end as is_liked                                                                                                            
+                from(                                                                                                                          
+                    select                                                                                                                     
+                        user_id,                                                                                                               
+                        event_id,                                                                                                              
+                        '' as annotation,                                                                                                      
+                        sum(if (action_type == "click", action_val, 0)) as click,                                                              
+                        sum(if (action_type == "gift", action_val, 0)) as gift,                                                                
+                        sum(if (action_type == "like_event", action_val, 0)) as like_event,                                                    
+                        sum(if (action_type == "order", action_val, 0)) as order_event,                                                        
+                        sum(if (action_type == "unlike_event", action_val, 0)) as unlike_event,                                                
+                        sum(if (action_type == "rating", action_val, 0)) as rating,                                                            
+                        max(log_time) as log_time,                                                                                             
+                        max(case when action_type = "like_event" then log_time end) as like_event_time,                                        
+                        max(case when action_type = "unlike_event" then log_time end) as unlike_event_time                                     
+                    from {}.{}                                                                                                                 
+                    where user_id is not null                                                                                                  
+                        and event_id is not null                                                                                               
+                        and create_date = '{}'                                                                                                          
+                    group by                                                                                                                   
+                        user_id,                                                                                                               
+                        event_id,                                                                                                              
+                        annotation) t                                                                                                          
+               """.format(
+            self.db,
+            self.hive_table,
+            self.partition)
+
+        return self.sql_context.sql(sql).rdd
+
+
+if __name__ == "__main__":
+    """
+    current_time: "2021-02-24-01"
+    """
+    on_dev = False
+    current_str_time = None
+    if len(sys.argv) == 2:
+        if sys.argv[1] == "dev":
+            on_dev = True
+        else:
+            current_str_time = sys.argv[1]
+    else:
+        current_str_time = sys.argv[1]
+        on_dev = True
+
+    spark = ss_util.get_spark_session(app_name="xxxx_user_activity_sum_generator_Linda",
+                                      configs={"spark.serializer": "org.apache.spark.serializer.KryoSerializer",
+                                               "spark.sql.hive.convertMetastoreParquet": "false"},
+                                      enable_hive=True)
+
+    logger = ss_util.get_logger(spark, "xxxx_user_activity_sum")
+
+    config_file = "./recommender.json"
+    config = json_util.load_json(config_file)
+    config_etl = config.get("etl")
+    hive_db = config_etl.get("hive_db")
+    hive_xxxx_user_activity_data = config_etl.get("hive_xxxx_user_activity_data")
+
+    # hb_host = config_etl.get("hbase_host")
+    schedule_time_delta = int(config_etl.get("schedule_time_delta"))
+
+    end_time = datetime.now() if not current_str_time else datetime.strptime(current_str_time, '%Y-%m-%d-%H')
+    start_time = end_time - timedelta(hours=schedule_time_delta)
+    start_str_time = start_time.strftime("%Y-%m-%d-%H")
+
+    data_extractor = UserData(spark, hive_xxxx_user_activity_data, hive_db, start_str_time)
+    hive_data = data_extractor.get_xxxx_user_activity_data()
+
+    hbase_xxxx_user_activity_sum = config_etl.get("hbase_xxxx_user_activity_sum")
+    hbase_xxxx_user_updated = config_etl.get("hbase_xxxx_user_updated")
+    hb_port = config_etl.get("hbase_port")
+    columns = {'user_id': 'uid', 'event_id': 'eid', 'annotation': 'ant', 'click': 'click',
+               'gift': 'gift', 'like_event': 'like', 'order_event': 'order', 'unlike_event': 'unlike',
+               'rating': 'rating', 'log_time': 'lgt', 'is_liked': 'isliked'}
+    cf_name = 'cf'
+
+    start = time.time()
+
+
+    def inject_hbase_partition(partition):
+
+        hbase_con = HbaseConnector(hb_port)
+        table = hbase_con.get_table(hbase_xxxx_user_activity_sum)
+        user_table = hbase_con.get_table(hbase_xxxx_user_updated)
+
+        b = table.batch()
+        user_b = user_table.batch()
+
+        counter = 0
+        for x in partition:
+            row = {"user_id": x["user_id"], "event_id": x["event_id"],
+                   "annotation": x["annotation"], "click": x["click"],
+                   "gift": x["gift"], "like_event": x["like_event"],
+                   "order_event": x["order_event"], "unlike_event": x["unlike_event"],
+                   "rating": x["rating"], "log_time": x["log_time"], "is_liked": x["is_liked"]}
+            cur_id = row["user_id"] + '_' + row["event_id"]
+            old_data = table.row(cur_id)
+            if old_data is not None and old_data:
+                old_time = old_data[hbase_con.encode_utf8(cf_name + ':lgt')]
+                if old_time is not None and old_time and row["log_time"] <= int(old_time):
+                    continue
+
+            refer_id = str(row["log_time"]) + '_' + row["user_id"]
+            user_b.put(refer_id, {hbase_con.encode_utf8("cf:uid"): hbase_con.encode_utf8(row["user_id"])})
+            user_b.put(refer_id, {hbase_con.encode_utf8("cf:eid"): hbase_con.encode_utf8(row["event_id"])})
+
+            for col, hb_col in columns.items():
+                hb_cf_str = cf_name + ':' + hb_col
+                hb_cf = hbase_con.encode_utf8(hb_cf_str)
+                val = row[col]
+                if col == 'is_liked' and row[col] != True and row[col] != False:
+                    continue
+                if old_data is not None and old_data and hb_cf in old_data \
+                        and col != 'annotation' and col != 'log_time' and col != 'is_liked' \
+                        and col != 'event_id' and col != 'user_id':
+                    if float(val) == 0.0:
+                        continue
+                    val = float(val) + float(old_data[hb_cf])
+                b.put(cur_id, {hb_cf: hbase_con.encode_utf8(str(val))})
+            if counter % 2500 == 0:
+                user_b.send()
+                b.send()
+        user_b.send()
+        b.send()
+        hbase_con.close()
+
+
+    hive_data.coalesce(16).foreachPartition(inject_hbase_partition)
+
+    alarm = Alarm()
+    is_alert = False
+    counter = 0
+    validation_samples = 5
+    hbase_con = HbaseConnector(hb_port)
+    table = hbase_con.get_table(hbase_xxxx_user_activity_sum)
+    user_table = hbase_con.get_table(hbase_xxxx_user_updated)
+    for x in hive_data.toLocalIterator():
+        counter += 1
+        if counter >= validation_samples:
+            break
+
+        row = {"user_id": x["user_id"], "event_id": x["event_id"],
+               "annotation": x["annotation"], "click": x["click"],
+               "gift": x["gift"], "like_event": x["like_event"],
+               "order_event": x["order_event"], "unlike_event": x["unlike_event"],
+               "rating": x["rating"], "log_time": x["log_time"], "is_liked": x["is_liked"]}
+
+        if not user_table.row(str(row["log_time"]) + '_' + row["user_id"]):
+            message = "User id:" + row["user_id"] + " at " + str(row["log_time"]) + " is not in user table!"
+            logger.info("User id is not in user table!")
+            alarm.add_message(AlarmMsg('Warning:', message).msg)
+            alarm.post_message("xxxx_user_activity_sum is not updated")
+            is_alert = True
+
+        sum_data = table.row(row["user_id"] + '_' + row["event_id"])
+        if not sum_data:
+            message = "User item activity " + row["user_id"] + '_' + row[
+                "event_id"] + " is not in the hbase sum table!"
+            logger.info("User item activity is not in the hbase sum table!")
+            alarm.add_message(AlarmMsg('Warning:', message).msg)
+            alarm.post_message("xxxx_user_activity_sum is not updated")
+            is_alert = True
+
+        hb_cf_str = cf_name + ':' + 'lgt'
+        hb_cf = hbase_con.encode_utf8(hb_cf_str)
+        if sum_data[hb_cf] != hbase_con.encode_utf8(str(row['log_time'])):
+            message = "User item activity is not updated"
+            logger.info("User item activity is not updated")
+            alarm.add_message(AlarmMsg('Warning:', message).msg)
+            alarm.post_message("xxxx_user_activity_sum is not updated")
+            is_alert = True
+
+    if is_alert:
+        logger.info("Data Validation is failed!")
+    else:
+        logger.info("Data Validation is successful!")
+
+    end = time.time()
+    logger.info("Elapsed time is " + str(end - start))
